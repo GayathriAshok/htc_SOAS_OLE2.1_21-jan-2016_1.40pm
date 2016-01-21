@@ -62,6 +62,7 @@ public class OLEConstants {
     public static final String ITEM_TITLE_ID = "itemTitleId";
     public static final String POSTING_YEAR = "postingYear";
     public static final String TOTAL_DOLLAR_AMOUNT = "financialDocumentTotalAmount";
+    public static final String SUBSCRIPTION_RENEWAL = "Subscription_Renewal";
 
     public static final String FAST_ADD_LINK = "/ole-kr-krad/circFastAddController?viewId=CircFastAddItemView&methodToCall=start";
     public static final String ITEM_ALREADY_LOANED = "Item is already loaned.";
@@ -827,6 +828,7 @@ public class OLEConstants {
         public static final String DEFAULT_LOCATION = "defaultLocation";
         public static final String LIST_PRICE = "listPrice";
         public static final String VENDOR_NUMBER = "vendorNumber";
+        public static final String VENDOR_ALIAS_NAME = "vendorAliasName";
         public static final String QUANTITY = "quantity";
         public static final String VENDOR_REFERENCE_NUMBER = "vendorReferenceNumber";
         public static final String RECEIVING_REQUIRED = "receivingRequired";
@@ -2142,6 +2144,7 @@ public class OLEConstants {
     public static final String COURTESY_NOTICE = "Courtesy Notice";
     public static final String HOLD_EXP_COURTESY_NOTICE = "Expired Hold  Notice";
     public static final String OVERDUE_NOTICE = "Overdue Notice";
+    public static final String RETURN_MISSING_PIECE_NOTICE = "Return With Missing Piece Notice";
     public static final String LOST_NOTICE = "Lost Notice";
     public static final String NOTICE_HOLD_COURTESY = "HoldCourtesyNotice";
     public static final String NOTICE_RECALL = "RecallNotice";
@@ -2244,6 +2247,8 @@ public class OLEConstants {
     public static final String ERROR_EMPTY_ROLE_PERSON_GROUP = "error.empty.role.person.group";
     public static final String NO_USER_FOR_GROUP = "error.no.user.group";
     public static final String NO_USER_FOR_ROLE = "error.no.user.role";
+    public static final String EMPTY_MAIL_CONTENT = "error.empty.mail.content";
+    public static final String EMPTY_USER_FOR_MAIL = "error.empty.mail.user";
 
     public static final class OleNoticeContentConfigurationRule {
         public static final String NOTICE_NAME_FIELD = "dataObject.noticeName";
@@ -2920,6 +2925,7 @@ public class OLEConstants {
 
 
     public static final String GLOBAL_EDIT_ADD_RECORDS_MESSAGE = "info.globalEdit.edit.selected.records";
+    public static final String GLOBAL_EDIT_SELECTED_RECORDS_ADD_MESSAGE = "info.globalEdit.edit.selected.message";
     public static final String GLOBAL_EDIT_VIEW_RECORDS_MESSAGE = "info.globalEdit.view.selected.records";
     public static final String GLOBAL_EDIT_HOLDINGS_HEADER_MESSAGE = "Global Holdings Editor  - OLEML Format";
     public static final String GLOBAL_EDIT_ITEM_HEADER_MESSAGE = "Global Item Editor - OLEML Format";
@@ -3186,6 +3192,7 @@ public class OLEConstants {
     public static final String INVALID_INVOICED_PRICE = "Invalid Invoiced Price -";
     public static final String INVALID_FOREIGN_INVOICED_PRICE = "Invalid Foreign Invoiced Price -";
     public static final String INVALID_VENDOR_NUMBER = "Invalid Vendor Number -";
+    public static final String INVALID_VENDOR_ALIAS_NAME = "Invalid Vendor Alias Name -";
     public static final String INVALID_QTY = "Invalid Quantity -";
     public static final String INVALID_NO_OF_PARTS = "Invalid No Of Parts -";
     public static final String INVALID_RECEIVING_REQUIRED = "Invalid Receiving Required -";
@@ -3209,6 +3216,7 @@ public class OLEConstants {
     public static final String INV_FAILURE_REASON = "invoiceIngestFailureReason";
     public static final String REQUIRED_LIST_PRICE = "List Price";
     public static final String REQUIRED_VENDOR_NUMBER = "Vendor Number";
+    public static final String REQUIRED_VENDOR_ALIAS_NAME = "vendor Alias Name";
     public static final String REQUIRED_QTY = "Quantity";
     public static final String REQUIRED_NO_OF_PARTS = "No Of Parts";
     public static final String REQUIRED_ACCOUNT_NUMBER = "Account Number";
@@ -3635,10 +3643,18 @@ public class OLEConstants {
         public static final String VEN_DTL_ASSIGN_ID = "vendorDetailAssignedIdentifier";
     }
 
+    public static final String RECEIPT_PRINTER_PAGE_SIZE = "B7";
+    public static final String RECEIPT_PRINTER_FONT_SIZE = "13";
+    public static final String REGULAR_PRINTER_PAGE_SIZE = "A4";
+    public static final String REGULAR_PRINTER_FONT_SIZE = "10";
     public static final String RECALL_NOTICE = "RecallNotice";
     public static final String ONHOLD_NOTICE = "OnHoldNotice";
     public static final String REQUEST_EXPIRATION_NOTICE="RequestExpirationNotice";
     public static final String ONHOLD_EXPIRATION_NOTICE="OnHoldExpirationNotice";
+    public static final String MISSING_PIECE_NOTICE ="Missing Piece Notice";
+    public static final String MISSING_PIECE_NOTICE_TITLE ="Return With Missing Item Notice";
+    public static final String MISSING_PIECE_NOTICE_BODY ="The following item(s) returned by you is missing one or more of its pieces.Please return the missing piece(s) to the library shown above or contact the library about this matter to avoid incurring any penalties.";
+    public static final String MISSING_PIECE_NOTICE_CONFIG_NAME ="MissingPieceNoticeConfig";
 
     public static final String NEW_NOTICE_CONTENT_CONFIG_DOC="New Notice Content Configuration Document";
     public static final String COPY_NOTICE_CONTENT_CONFIG_DOC="Copied Notice Content Configuration Document";
@@ -3657,14 +3673,18 @@ public class OLEConstants {
     public static final String NOTICE_AUTHOR = "Author";
     public static final String VOLUME_ISSUE_COPY = "Volume/Issue/Copy #";
     public static final String NOTICE_CALL_NUMBER = "Call #";
+    public static final String NOTICE_CALL_NUMBER_PREFIX ="Call # Prefix";
     public static final String NOTICE_ITEM_BARCODE = "Item_Barcode";
     public static final String ORIGINAL_DUE_DATE = "Original Due Date";
     public static final String NEW_DUE_DATE = "New Due Date";
+    public static final String ITEM_DUE_DATE = "Item Due Date";
     public static final String ITEM_WAS_DUE = "Item was due";
     public static final String HOLD_EXPIRATION_DATE = "Hold Expiration Date";
     public static final String NOTICE_RECALL_DUE_DATE = "Hold Expiration Date";
     public static final String LIBRARY_SHELVING_LOCATION ="Library shelving location";
     public static final String LIBRARY_LOCATION="Library Location";
+    public static final String MISSING_ITEM_CHECK_IN_DATE = "Check In Date";
+    public static final String MISSING_ITEM_NOTE ="Missing Piece Note";
 
     public static final String SIMPLE_DATE_FORMAT_FOR_TIME_24H = "HH:mm";
     public static final String DEFAULT_DATE_FORMAT_24H = RiceConstants.SIMPLE_DATE_FORMAT_FOR_DATE +" "+ SIMPLE_DATE_FORMAT_FOR_TIME_24H;
@@ -3706,6 +3726,10 @@ public class OLEConstants {
     public static final String HOLDINGS_SUPRESS_SHELVINGORDER = "HOLDINGS_SUPRESS_SHELVINGORDER";
     public static final String ITEM_SUPRESS_SHELVINGORDER = "ITEM_SUPRESS_SHELVINGORDER";
 
+    public static final String HOLDINGS_CALL_NUMBER_TYPE ="HOLDINGS_CALL_NUMBER_TYPE";
+    public static final String ITEM_CALL_NUMBER_TYPE ="ITEM_CALL_NUMBER_TYPE";
+    public static final String E_HOLDINGS_CALL_NUMBER_TYPE ="EHOLDINGS_CALL_NUMBER_TYPE";
+
     public static final String DEFAULT_PAGE_SIZE_LOANED_ITEMS = "DEFAULT_PAGE_SIZE_LOANED_ITEMS";
     public static final String DEFAULT_ITEM_TYPE_CODE = "DEFAULT_ITEM_TYPE_CODE";
 
@@ -3718,10 +3742,22 @@ public class OLEConstants {
     public static final String ITEM_WILL_BE_HELD_UNTIL = "Item Will Be Held until";
 
     public static final String SEND_ONHOLD_NOTICE_WHILE_CHECKIN = "SEND_ONHOLD_NOTICE_WHILE_CHECKIN";
+    public static final String SEND_MISSING_PIECE_NOTICE_WHILE_CHECKIN = "SEND_MISSING_PIECE_NOTICE_WHILE_CHECKIN";
     public static final String CHUNK_SIZE_FOR_NOTICE_CONTENT_REINDEX = "CHUNK_SIZE_FOR_NOTICE_CONTENT_REINDEX";
 
     public static final String LOAN_DOCUMENTS = "loanDocuments";
     public static final String DELIVER_NOTICES = "deliverNotices";
     public static final String NOTICE_CONTENT_CONFIG_NAME = "noticeContentConfigName";
+    public static final String FINE_CALC_WHILE_RENEW = "FINE_CALC_WHILE_RENEW";
 
+    public static final String BLANKET_APPROVE = "BLANKET_APPROVAL";
+    public static final String NOTIFICATION_TYP_CD = "K";
+    public static final String INVOICE_DOC = "OLE_PRQS";
+    public static final String PREQ_DOC = "OLE_PREQ";
+    public static final String ERROR_REPORT_FILE_NM = "/ErrorReport";
+    public static final String TEMPORARY_HISTORY_RECORD_DAYS = "TEMPORARY_HISTORY_RECORD_DAYS";
+    public static final String NUMBER_OF_WORKING_DAYS = "numberOfWorkingDays";
+    public static final String NUMBER_OF_WORKING_HOURS = "numberOfWorkingHours";
+    public static final String MAIN_REC_REC_TYP = "Main";
+    public static final String MESSAGE_UNSAVED_CHANGES = "message.unsaved.changes";
 }

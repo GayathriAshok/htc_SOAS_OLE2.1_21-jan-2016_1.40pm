@@ -438,9 +438,9 @@ public class BatchBibImportUtil {
                 String[] subFiledArray = dataFieldArrray[2].split("\\$");
                 for (String subFieldString : subFiledArray) {
                     if (StringUtils.isNotEmpty(subFieldString)) {
-                    SubField subField = new SubField();
-                    subField.setCode(subFieldString);
-                    subFields.add(subField);
+                        SubField subField = new SubField();
+                        subField.setCode(subFieldString);
+                        subFields.add(subField);
                     }
                 }
             } else {

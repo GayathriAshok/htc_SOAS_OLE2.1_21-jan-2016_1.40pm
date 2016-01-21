@@ -189,6 +189,7 @@ public class WorkHoldingsOlemlEditor extends AbstractEditor {
 
                     ensureMultipleValuesInOleHoldings(oleHoldings);
 
+
                     workInstanceOlemlForm.setSelectedHolding(oleHoldings);
                     getInstanceEditorFormDataHandler().setLocationDetails(workInstanceOlemlForm);
                 } else {
@@ -266,7 +267,19 @@ public class WorkHoldingsOlemlEditor extends AbstractEditor {
                 }
             }
         }
+
+        OleHoldings oleHoldings = workInstanceOlemlForm.getSelectedHolding();
+        if(oleHoldings!=null && oleHoldings.getCallNumber() !=null){
+            if(oleHoldings.getCallNumber().getShelvingScheme() == null) {
+                String callNumberDefaultValue = getParameter(OLEConstants.APPL_ID_OLE, OLEConstants.DESC_NMSPC, OLEConstants
+                        .DESCRIBE_COMPONENT, OLEConstants.HOLDINGS_CALL_NUMBER_TYPE);
+                ShelvingScheme shelvingScheme = new ShelvingScheme();
+                shelvingScheme.setCodeValue(callNumberDefaultValue);
+                oleHoldings.getCallNumber().setShelvingScheme(shelvingScheme);
+            }
+        }
         workInstanceOlemlForm.setViewId("WorkHoldingsViewPage");
+
         return workInstanceOlemlForm;
     }
 
@@ -911,12 +924,12 @@ public class WorkHoldingsOlemlEditor extends AbstractEditor {
             }
             holdings.setId(docId);
             String canUpdateStaffOnlyFlag = "false";
-            if (editorForm.getStaffOnlyFlagInGlobalEdit() != null && editorForm.getStaffOnlyFlagInGlobalEdit().equalsIgnoreCase("Y")) {
+            if (editorForm.isStaffOnlyFlagInGlobalEdit()) {
                 canUpdateStaffOnlyFlag = "true";
                 editorForm.setStaffOnlyFlagForHoldings(true);
                 holdings.setStaffOnly(editorForm.isStaffOnlyFlagForHoldings());
             }
-            else if (editorForm.getStaffOnlyFlagInGlobalEdit() != null && editorForm.getStaffOnlyFlagInGlobalEdit().equalsIgnoreCase("N")) {
+            else if (!editorForm.isStaffOnlyFlagInGlobalEdit()) {
                 canUpdateStaffOnlyFlag = "true";
                 editorForm.setStaffOnlyFlagForHoldings(false);
                 holdings.setStaffOnly(editorForm.isStaffOnlyFlagForHoldings());

@@ -7,8 +7,12 @@ import java.text.SimpleDateFormat;
 import java.text.CharacterIterator;
 import java.text.StringCharacterIterator;
 
+import org.apache.commons.lang.SerializationUtils;
 import org.apache.commons.lang.StringUtils;
 import org.kuali.ole.DocumentUniqueIDPrefix;
+import org.kuali.ole.audit.Audit;
+import org.kuali.ole.audit.HoldingsAudit;
+import org.kuali.ole.audit.OleAuditManager;
 import org.kuali.ole.docstore.DocStoreConstants;
 import org.kuali.ole.docstore.common.document.*;
 import org.kuali.ole.docstore.common.document.HoldingsTree;
@@ -141,6 +145,7 @@ public class RdbmsHoldingsDocumentManager extends RdbmsAbstarctDocumentManager {
         if (oleHoldings.geteResourceSubscriptionStatus() == null || (oleHoldings.geteResourceSubscriptionStatus() != null && oleHoldings.getSubscriptionStatus() != oleHoldings.geteResourceSubscriptionStatus())) {
             holdingsRecord.setSubscriptionStatus(oleHoldings.getSubscriptionStatus());
         }
+        holdingsRecord.setCancellationCandidate(oleHoldings.isCancellationCandidate());
         if (oleHoldings.geteResourceCancellationReason() == null || (oleHoldings.geteResourceCancellationReason() != null && oleHoldings.getCancellationReason() != oleHoldings.geteResourceCancellationReason())) {
             holdingsRecord.setCancellationReason(oleHoldings.getCancellationReason());
         }
@@ -298,10 +303,10 @@ public class RdbmsHoldingsDocumentManager extends RdbmsAbstarctDocumentManager {
             getBusinessObjectService().delete(holdingsDonorRecordList);
         }
         if (donorslist.size() > 0) {
-            List<OLEHoldingsDonorRecord> oleHoldingsDonorRecords = new ArrayList<OLEHoldingsDonorRecord>();
+            List<OLEHoldingsDonorRecord> oleHoldingsDonorRecords = new ArrayList<>();
             for (int i = 0; i < donorslist.size(); i++) {
                 DonorInfo donorinfo = donorslist.get(i);
-                if (donorinfo.getDonorCode() != null) {
+                if (StringUtils.isNotBlank(donorinfo.getDonorCode()) || StringUtils.isNotBlank(donorinfo.getDonorNote()) || StringUtils.isNotBlank(donorinfo.getDonorPublicDisplay())) {
                     OLEHoldingsDonorRecord oleHoldingsDonorRecord = new OLEHoldingsDonorRecord();
                     oleHoldingsDonorRecord.setDonorPublicDisplay(donorinfo.getDonorPublicDisplay());
                     oleHoldingsDonorRecord.setDonorCode(donorinfo.getDonorCode());
@@ -421,6 +426,7 @@ public class RdbmsHoldingsDocumentManager extends RdbmsAbstarctDocumentManager {
     public void update(Object object) {
         Holdings holdings = (Holdings) object;
         HoldingsRecord holdingsRecord = getExistingHoldings(holdings.getId());
+        HoldingsRecord oldHoldingsRecord = (HoldingsRecord)SerializationUtils.clone(holdingsRecord);
         if (holdingsRecord == null) {
             DocstoreException docstoreException = new DocstoreValidationException(DocstoreResources.HOLDING_ID_NOT_FOUND, DocstoreResources.HOLDING_ID_NOT_FOUND);
             docstoreException.addErrorParams("holdingsId", holdings.getId());
@@ -468,6 +474,17 @@ public class RdbmsHoldingsDocumentManager extends RdbmsAbstarctDocumentManager {
         content = workHoldingOlemlRecordProcessor.toXML(oleHoldings);
         holdings.setContent(content);
         buildLabelForHoldings(holdingsRecord, holdings);
+        try {
+            List<Audit> auditList= OleAuditManager.getInstance().audit(HoldingsAudit.class, oldHoldingsRecord, holdingsRecord, holdingsRecord.getHoldingsId(), "ole");
+            System.out.println();
+            OleAuditManager.getInstance().audit(HoldingsAudit.class,oldHoldingsRecord,holdingsRecord,holdingsRecord.getHoldingsId(),"ole");
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (InstantiationException e) {
+            e.printStackTrace();
+        }
     }
 
     private void setPHoldingsInformation(HoldingsRecord holdingsRecord, OleHoldings oleHoldings) {
@@ -1267,6 +1284,7 @@ public class RdbmsHoldingsDocumentManager extends RdbmsAbstarctDocumentManager {
             oleHoldings.setDonorInfo(donorInfoList);
         }
 
+        oleHoldings.setCancellationCandidate(holdingsRecord.isCancellationCandidate());
         if (holdingsRecord.getInitialSubscriptionStartDate() != null)
             oleHoldings.setInitialSubscriptionStartDate(new SimpleDateFormat("MM/dd/yyyy").format(holdingsRecord.getInitialSubscriptionStartDate()));
         if (holdingsRecord.getCurrentSubscriptionEndDate() != null)

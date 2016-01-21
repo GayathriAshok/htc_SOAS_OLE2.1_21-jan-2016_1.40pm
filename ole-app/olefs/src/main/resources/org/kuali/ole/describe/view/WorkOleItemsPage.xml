@@ -25,8 +25,8 @@
                 <ref bean="OleItemDamaged-Section"/>
                 <ref bean="itemDamagedRecords"/>
                 <ref bean="OleMissingItem-Section"/>
-                <ref bean="OLEIntransitLoanRecords"/>
                 <ref bean="MissingPieceItemHistory"/>
+                <ref bean="OLEReturnHistoryRecords"/>
                 <ref bean="OLEPatronFlaggedItemHistoryView-PatronRecords"/>
                 <ref bean="hiddenItemLocationEditFlag"/>
                 <ref bean="hiddenItemCallNumberPrefixEditFlag"/>
@@ -197,12 +197,9 @@
                 </bean>
                 <bean id="staffOnlyForGlobalEdit" parent="Uif-InputField" p:propertyName="staffOnlyFlagInGlobalEdit"
                       p:label="Staff Only"
-                      p:required="false"  p:render="@{globalEditFlag eq 'true'}">
+                      p:required="false" p:render="@{globalEditFlag eq 'true'}">
                     <property name="control">
-                        <bean parent="Uif-DropdownControl" p:cssClasses="fixed-size-20-select" />
-                    </property>
-                    <property name="optionsFinder">
-                        <bean class="org.kuali.ole.describe.keyvalue.OLEStaffFieldKeyValueFinder"/>
+                        <bean parent="Uif-CheckboxControl"/>
                     </property>
                 </bean>
                 <bean id="LocalItem" parent="Uif-InputField" p:propertyName="itemLocalIdentifier"
@@ -523,6 +520,12 @@
                         </bean>
                     </property>
                 </bean>
+                <bean id="oleItemDescOfPieces" parent="Uif-InputField" p:propertyName="descriptionOfPieces"
+                      p:label="Description Of Pieces" p:required="false">
+                    <property name="control">
+                        <bean parent="Uif-TextControl" p:size="30" p:maxLength="400"/>
+                    </property>
+                </bean>
                 <bean id="oleItemIdentifier_ID" parent="Uif-InputField" p:propertyName="itemIdentifier"
                       p:label="Item Id" p:required="false">
                     <property name="control">
@@ -599,7 +602,7 @@
         </property>
     </bean>
 
-    <bean id="OleDonorInformation" parent="Uif-Disclosure-GridSection" p:layoutManager.numberOfColumns="2" p:fieldBindingObjectPath="documentForm.selectedItem">
+    <bean id="OleDonorInformation" parent="Uif-HorizontalBoxSection">
         <property name="items">
             <list>
                 <ref bean="OleDonorInformation-ListOfDonors"/>
@@ -607,10 +610,11 @@
         </property>
     </bean>
 
-    <bean  id="OleDonorInformation-ListOfDonors"  parent="Uif-TableCollectionSection"  p:layoutManager.numberOfColumns="10"
+    <bean  id="OleDonorInformation-ListOfDonors"  parent="Uif-Disclosure-TableCollectionSection"  p:layoutManager.numberOfColumns="10"
            p:layoutManager.applyDefaultCellWidths="false" p:style="width:auto" >
+        <property name="headerText" value="Donor"/>
         <property name="collectionObjectClass" value="org.kuali.ole.docstore.common.document.content.instance.DonorInfo" />
-        <property name="propertyName" value="donorInfo" />
+        <property name="propertyName" value="documentForm.selectedItem.donorInfo" />
         <property name="layoutManager.renderSequenceField" value="false"/>
         <property name="layoutManager.richTable.render" value="false"/>
         <property name="renderAddLine" value="false"/>
@@ -632,18 +636,26 @@
                             </property>
                         </bean>
                     </property>
+                    <property name="control">
+                        <bean id="itemDonorCodeControl" parent="Uif-TextControl" p:size="10" p:maxLength="10"
+                              p:onClickScript="itemDonorCodeDisable(@{#index})" p:onKeyUpScript="itemDonorCodeDisable(@{#index})" p:onBlurScript="validateItemDonorCode(@{#index})"/>
+                    </property>
                 </bean>
 
                 <bean id="oleItemDonorPublicDisplay" parent="Uif-InputField"
                       p:propertyName="donorPublicDisplay" p:label="Donor Public Display" p:required="false">
                     <property name="control">
-                        <bean parent="Uif-TextControl" p:maxLength="4000" p:disabled="true"/>
+                        <bean parent="Uif-TextControl" p:maxLength="4000"
+                              p:onClickScript="itemDonorCodeDisable(@{#index})" p:onKeyUpScript="itemDonorCodeDisable(@{#index})"
+                              p:disabled="@{#line?.donorCode ne null and #line?.donorCode ne ''}"/>
                     </property>
                 </bean>
                 <bean id="oleItemDonorNote" parent="Uif-InputField" p:propertyName="donorNote"
                       p:label="Donor Note" p:required="false">
                     <property name="control">
-                        <bean parent="Uif-TextControl" p:disabled="true"/>
+                        <bean parent="Uif-TextControl" p:maxLength="40"
+                              p:onClickScript="itemDonorCodeDisable(@{#index})" p:onKeyUpScript="itemDonorCodeDisable(@{#index})"
+                              p:disabled="@{#line?.donorCode ne null and #line?.donorCode ne ''}"/>
                     </property>
                 </bean>
             </list>
@@ -783,19 +795,20 @@
                 <bean id="missingPieceDate" parent="Uif-DataField" p:readOnly="true" p:propertyName="missingPieceDate" p:label="Missing Piece Item Date"/>
                 <bean id="missingPieceCount" parent="Uif-DataField" p:readOnly="true" p:propertyName="missingPieceCount" p:label="Missing Piece Item Count"/>
                 <bean id="missingPieceFlagNote" parent="Uif-DataField" p:readOnly="true" p:propertyName="missingPieceFlagNote" p:label="Missing Piece Item Note"/>
-                <bean id="operatorId" parent="Uif-DataField" p:readOnly="true" p:propertyName="operatorId" p:label="Operator Id"/>
-                <bean id="patronBarcode" parent="Uif-DataField" p:readOnly="true" p:propertyName="patronBarcode" p:label="Associated Patron Barcode"/>
+                <bean id="missingPieceOperatorId" parent="Uif-DataField" p:readOnly="true" p:propertyName="operatorId" p:label="Operator Id"/>
+                <bean id="missingPiecePatronId" parent="Uif-LinkField" p:label="Associated Patron Barcode" p:style="word-break: break-all;word-wrap: break-word"
+                      p:linkText="@{#line.patronBarcode}" p:target="_blank" p:href="inquiry?methodToCall=start&amp;olePatronId=@{#line.patronId}&amp;dataObjectClassName=org.kuali.ole.deliver.bo.OlePatronDocument"/>
             </list>
         </property>
     </bean>
 
 
 
-    <bean  id="OLEIntransitLoanRecords"  parent="Uif-Disclosure-TableCollectionSection"  p:layoutManager.numberOfColumns="10"
+    <bean  id="OLEReturnHistoryRecords"  parent="Uif-Disclosure-TableCollectionSection"  p:layoutManager.numberOfColumns="10"
            p:layoutManager.applyDefaultCellWidths="false" p:style="width:auto">
-        <property name="headerText" value="Intransit loan history" />
-        <property name="collectionObjectClass" value="org.kuali.ole.deliver.bo.OLELoanIntransitRecordHistory" />
-        <property name="propertyName" value="oleLoanIntransitRecordHistories" />
+        <property name="headerText" value="Return history" />
+        <property name="collectionObjectClass" value="org.kuali.ole.deliver.bo.OLEReturnHistoryRecord" />
+        <property name="propertyName" value="oleReturnHistoryRecords" />
         <property name="layoutManager.renderSequenceField" value="false" />
         <property name="layoutManager.richTable.templateOptions" value="true"/>
         <property name="layoutManager.richTable.render" value="true"/>
@@ -807,9 +820,10 @@
                 <bean id="itemBarcode" parent="Uif-DataField" p:readOnly="true" p:propertyName="itemBarcode" p:label="Item Barcode"/>
                 <!--<bean id="itemUUID" parent="Uif-DataField" p:readOnly="true" p:propertyName="itemUUID" p:label="id"/>-->
                 <bean id="operator" parent="Uif-DataField" p:readOnly="true" p:propertyName="operator" p:label="Operator"/>
+                <bean id="returnedItemStatus" parent="Uif-DataField" p:readOnly="true" p:propertyName="returnedItemStatus" p:label="Item Status"/>
                 <bean id="homeCirculationDesk" parent="Uif-DataField" p:readOnly="true" p:propertyName="homeCirculationDesk" p:label="Routed From"/>
                 <bean id="routeCirculationDesk" parent="Uif-DataField" p:readOnly="true" p:propertyName="routeCirculationDesk" p:label="Routed To"/>
-                <bean id="returnedDateTime" parent="Uif-DataField" p:readOnly="true" p:propertyName="returnedDateTime" p:label="Transit Date"/>
+                <bean id="returnedDateTime" parent="Uif-DataField" p:readOnly="true" p:propertyName="returnedDateTime" p:label="Return Date"/>
             </list>
         </property>
     </bean>
@@ -849,7 +863,8 @@
             <list>
                 <bean id="item_claimsReturnedFlagCreateDate" parent="Uif-DataField" p:readOnly="true" p:propertyName="claimsReturnedFlagCreateDate" p:label="Claims Returned Create Date"/>
                 <bean id="item_claimsReturnedNote" parent="Uif-DataField" p:readOnly="true" p:propertyName="claimsReturnedNote" p:label="Claims Returned Note"/>
-                <bean id="item_claimsReturnedPatronBarcode" parent="Uif-DataField" p:readOnly="true" p:propertyName="claimsReturnedPatronBarcode" p:label="Associated Patron Barcode"/>
+                <bean id="item_claimsReturnedPatronBarcode" parent="Uif-LinkField" p:label="Associated Patron Barcode" p:style="word-break: break-all;word-wrap: break-word"
+                      p:linkText="@{#line.claimsReturnedPatronBarcode}" p:target="_blank" p:href="inquiry?methodToCall=start&amp;olePatronId=@{#line.claimsReturnedPatronId}&amp;dataObjectClassName=org.kuali.ole.deliver.bo.OlePatronDocument"/>
                 <bean id="item_claimsReturnedOperatorId" parent="Uif-DataField" p:readOnly="true" p:propertyName="claimsReturnedOperatorId" p:label="Operator Id"/>
             </list>
         </property>
@@ -874,7 +889,8 @@
             <list>
                 <bean id="item_damagedItemDate" parent="Uif-DataField" p:readOnly="true" p:propertyName="damagedItemDate" p:label="Damaged Date"/>
                 <bean id="item_damagedItemNote" parent="Uif-DataField" p:readOnly="true" p:propertyName="damagedItemNote" p:label="Damaged Note"/>
-                <bean id="item_patronBarcode" parent="Uif-DataField" p:readOnly="true" p:propertyName="patronBarcode" p:label="Associated Patron Barcode"/>
+                <bean id="item_damagedPatronBarcode" parent="Uif-LinkField" p:label="Associated Patron Barcode" p:style="word-break: break-all;word-wrap: break-word"
+                      p:linkText="@{#line.patronBarcode}" p:target="_blank" p:href="inquiry?methodToCall=start&amp;olePatronId=@{#line.damagedPatronId}&amp;dataObjectClassName=org.kuali.ole.deliver.bo.OlePatronDocument"/>
                 <bean id="item_operatorId" parent="Uif-DataField" p:readOnly="true" p:propertyName="operatorId" p:label="Operator Id"/>
             </list>
         </property>

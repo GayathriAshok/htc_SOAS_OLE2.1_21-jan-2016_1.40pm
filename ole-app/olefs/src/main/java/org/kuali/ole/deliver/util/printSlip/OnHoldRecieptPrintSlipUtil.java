@@ -39,17 +39,15 @@ public class OnHoldRecieptPrintSlipUtil extends OleRecieptPrintSlipUtil {
         String patronName = oleDeliverRequestBo != null ? oleDeliverRequestBo.getOlePatron().getPatronName() : null;
         try {
             pdfTable.addCell(getPdfFormatUtil().getPdfPCellInJustified(patronName));
-            if (oleCirculationDesk != null) {
-                int noDays = Integer.parseInt(oleCirculationDesk.getOnHoldDays());
-                Calendar calendar = Calendar.getInstance();
-                calendar.add(Calendar.DATE, noDays);
-                Date date = calendar.getTime();
+            if(null != oleDeliverRequestBo && oleDeliverRequestBo.getHoldExpirationDate() != null) {
+                Date date = oleDeliverRequestBo.getHoldExpirationDate();
                 if (date != null) {
                     DateFormat df = new SimpleDateFormat("MM/dd/yyyy");
                     String dateString = date == null ? "" : df.format(date);
                     pdfTable.addCell(getPdfFormatUtil().getPdfPCellInJustified(dateString));
                 }
             }
+            pdfTable.addCell(getPdfFormatUtil().getPdfPCellInJustified(oleDeliverRequestBo.getRequestNote()));
             pdfTable.addCell(getPdfFormatUtil().getEmptyCell());
             if (!missingPieceCheck) {
                 pdfTable.addCell(getPdfFormatUtil().getPdfPCellInJustified(oleCirculationDesk != null ? oleCirculationDesk.getCirculationDeskPublicName() : ""));

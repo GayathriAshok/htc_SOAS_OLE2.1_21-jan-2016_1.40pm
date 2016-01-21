@@ -5,7 +5,7 @@
     <table id="existingLoanItemTable" class="table table-condensed table-bordered uif-tableCollectionLayout dataTable">
         <thead>
         <tr>
-            <th></th>
+            <th>Select</th>
             <th>Barcode</a></th>
             <th>Title</th>
             <th>Author</th>
@@ -23,6 +23,7 @@
             <th>Missing Piece Note</th>
             <th>Item Damaged Note</th>
             <th>Pending Requests</th>
+            <th>Send Notices</th>
         </thead>
         <tbody>
             <#list manager.searchLines as line>
@@ -56,6 +57,12 @@
                     <div>
                         <a target="_blank"
                            href="lookup?methodToCall=search&amp;itemId=${line.row.itemId!}&amp;flag=true&amp;dataObjectClassName=org.kuali.ole.deliver.bo.OleDeliverRequestBo">${line.row.requestFlag!?html}</a>
+                    </div>
+                </td>
+                <td>
+                    <div>
+                        <a target="_blank"
+                           href=${line.row.sentNoticesUrl}>View Sent Notices in a New Window</a>
                     </div>
                 </td>
             </tr>
@@ -110,7 +117,7 @@
 
 
 <#macro existing_pagesize manager>
-<div class="dataTables_length">
+<div class="dataTables_length" style="float:left; width:400px;position: relative">
     <label>Show
         <select id="existingLoanItemTable_length">
             <#list manager.pageSizeOptions as pso>

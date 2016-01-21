@@ -616,6 +616,7 @@
         <field-descriptor name="currentSubscriptionStartDate" column="CURRENT_SBRCPTN_START_DT" jdbc-type="TIMESTAMP"/>
         <field-descriptor name="currentSubscriptionEndDate" column="CURRENT_SBRCPTN_END_DT" jdbc-type="TIMESTAMP"/>
         <field-descriptor name="initialSubscriptionStartDate" column="INITIAL_SBRCPTN_START_DT" jdbc-type="TIMESTAMP"/>
+        <field-descriptor name="cancellationCandidate" column="CANCELLATION_CANDIDATE" jdbc-type="CHAR" conversion="org.kuali.rice.core.framework.persistence.ojb.conversion.OjbCharBooleanConversion"/>
         <field-descriptor name="cancellationDecisionDate" column="CANCELLATION_DECISION_DT" jdbc-type="TIMESTAMP"/>
         <field-descriptor name="cancellationEffectiveDate" column="CANCELLATION_EFFECTIVE_DT" jdbc-type="TIMESTAMP"/>
         <field-descriptor name="cancellationReason" column="CANCELLATION_REASON" jdbc-type="VARCHAR"/>
@@ -795,6 +796,7 @@
         <field-descriptor name="createdBy" column="CREATED_BY" jdbc-type="VARCHAR"/>
         <field-descriptor name="updatedBy" column="UPDATED_BY" jdbc-type="VARCHAR"/>
         <field-descriptor name="originalDueDate" column="ORG_DUE_DATE_TIME" jdbc-type="TIMESTAMP"/>
+        <field-descriptor name="descriptionOfPieces" column="DESC_OF_PIECES" jdbc-type="VARCHAR"/>
         <reference-descriptor name="itemStatusRecord" class-ref="org.kuali.ole.docstore.engine.service.storage.rdbms.pojo.ItemStatusRecord" auto-retrieve="true" auto-update="none" auto-delete="none">
             <foreignkey field-ref="itemStatusId" />
         </reference-descriptor>

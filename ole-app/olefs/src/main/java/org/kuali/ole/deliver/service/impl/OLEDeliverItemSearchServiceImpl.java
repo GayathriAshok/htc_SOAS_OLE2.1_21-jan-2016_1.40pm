@@ -62,6 +62,8 @@ public class OLEDeliverItemSearchServiceImpl implements OLEDeliverItemSearchServ
                 deliverRequestResultDisplayRow.setBorrowerBarcode(oleDeliverRequestBo.getBorrowerBarcode());
                 deliverRequestResultDisplayRow.setCreateDate(oleDeliverRequestBo.getCreateDate());
                 deliverRequestResultDisplayRow.setExpiryDate(oleDeliverRequestBo.getRequestExpiryDate());
+                deliverRequestResultDisplayRow.setOnHoldExpirationDate(oleDeliverRequestBo.getHoldExpirationDate());
+                deliverRequestResultDisplayRow.setPickUpLocation(oleDeliverRequestBo.getOlePickUpLocation()!=null ? oleDeliverRequestBo.getOlePickUpLocation().getCirculationDeskCode() : "");
                 deliverRequestResultDisplayRowList.add(deliverRequestResultDisplayRow);
             }
             singleItemResultDisplayRow.setOleDeliverRequestResultDisplayRowList(deliverRequestResultDisplayRowList);
@@ -217,9 +219,9 @@ public class OLEDeliverItemSearchServiceImpl implements OLEDeliverItemSearchServ
         if (StringUtils.isNotBlank(singleItemResultDisplayRow.getId())) {
             Map map = new HashMap();
             map.put(OLEConstants.OVERLAY_ITEMUUID, singleItemResultDisplayRow.getId());
-            List<OLELoanIntransitRecordHistory> oleIntransitRecordHistories = (List<OLELoanIntransitRecordHistory>) KRADServiceLocator.getBusinessObjectService().findMatching(OLELoanIntransitRecordHistory.class, map);
-            if (CollectionUtils.isNotEmpty(oleIntransitRecordHistories)) {
-                singleItemResultDisplayRow.setOleIntransitRecordHistories(oleIntransitRecordHistories);
+            List<OLEReturnHistoryRecord> oleReturnHistoryRecords = (List<OLEReturnHistoryRecord>) KRADServiceLocator.getBusinessObjectService().findMatching(OLEReturnHistoryRecord.class, map);
+            if (CollectionUtils.isNotEmpty(oleReturnHistoryRecords)) {
+                singleItemResultDisplayRow.setOleReturnHistoryRecords(oleReturnHistoryRecords);
             }
         }
     }

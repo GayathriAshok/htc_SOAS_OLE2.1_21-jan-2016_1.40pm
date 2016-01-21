@@ -44,6 +44,7 @@
                 <ref bean="OleRequestDocument-borrowerBarcode"/>
                 <ref bean="OleRequestDocument-proxyBorrowerBarcode"/>
                 <ref bean="OleRequestDocument-requestLevel"/>
+                <ref bean="OleRequestDocument-requestNote"/>
 
             </list>
         </property>
@@ -564,6 +565,21 @@
         <property name="label" value="Request Level"/>
     </bean>
 
+    <bean id="OleRequestDocument-requestNote" parent="OleRequestDocument-requestNote-parentBean"/>
+    <bean id="OleRequestDocument-requestNote-parentBean" abstract="true" parent="AttributeDefinition">
+        <property name="maxLength" value="4000"/>
+        <property name="shortLabel" value="Request Note"/>
+        <property name="description" value="Request Note"/>
+        <property name="name" value="requestNote"/>
+        <property name="control">
+            <bean parent="TextControlDefinition" p:size="40"/>
+        </property>
+        <property name="controlField">
+            <bean parent="Uif-TextControl" p:size="40"/>
+        </property>
+        <property name="forceUppercase" value="false"/>
+        <property name="label" value="Note"/>
+    </bean>
 
     <bean id="OleRequestDocument-LookupView" parent="Uif-OLELookupView">
         <property name="headerText" value="Request Search" />
@@ -619,6 +635,8 @@
                 <bean id="result-createDate" parent="Uif-DataField" p:propertyName="createDate" />
                 <bean id="result-expirationDate" parent="Uif-DataField" p:propertyName="requestExpiryDate"/>
                 <bean id="result-pickUpLocation" parent="Uif-DataField" p:propertyName="pickUpLocationCode"/>
+                <bean id="result-onHoldExpirationDate" parent="Uif-DataField" p:propertyName="holdExpirationDate"/>
+                <bean id="result-requestNote" parent="Uif-DataField" p:propertyName="requestNote"/>
             </list>
         </property>
         <property name="resultsGroup">
@@ -632,10 +650,36 @@
                 </property>
             </bean>
         </property>-->
+        <property name="page">
+            <bean parent="uif-Ole-LookupPage"/>
+        </property>
         <property name="criteriaGroup">
             <bean parent="OLE_DeliverRequest_Uif_LookupCriteriaGroup"/>
         </property>
     </bean>
+
+  <!--  <bean id="OLE_DeliverRequest_Uif-LookupPage-parentBean" abstract="true" parent="Uif-Page">
+        <property name="cssClasses">
+            <list merge="true">
+                <value>uif-lookupPage</value>
+            </list>
+        </property>
+        <property name="renderFooter" value="false"/>
+    </bean>
+
+
+
+
+    <bean id="OLE_DeliverRequest_Uif-CreateNewLink" parent="Uif-SecondaryActionButton" p:actionLabel="Create New"
+          p:render="@{!#view.suppressActions and #view.showMaintenanceLinks and #ViewHelper.allowsMaintenanceNewOrCopyAction()}">
+        <property name="finalizeMethodToCall" value="getMaintenanceActionLink"/>
+        <property name="finalizeMethodAdditionalArguments">
+            <list>
+                <value>start</value>
+            </list>
+        </property>
+    </bean>-->
+
 
     <bean id="OLE_DeliverRequest_Uif_LookupCriteriaGroup" parent="Uif-GridGroup">
         <property name="headerText" value="Lookup Criteria"/>
@@ -649,15 +693,16 @@
     <bean id="OLE_DeliverRequest_Uif-LookupCriteriaFooter" parent="Uif-FooterBase">
         <property name="items">
             <list>
-                <bean id="searchReqBtn" parent="Uif-PrimaryActionButton" p:methodToCall="search" p:actionLabel="Search"/>
-                <bean id="clearReqBtn" parent="Uif-PrimaryActionButton" p:methodToCall="clearValues" p:actionLabel="Clear Values"/>
-                <bean id="cancelReqBtn" parent="Uif-PrimaryActionButton" p:methodToCall="cancel" p:actionLabel="Cancel"
+                <bean id="searchReqBtn" parent="Uif-SecondaryActionButton" p:methodToCall="search" p:actionLabel="Search"/>
+                <bean id="clearReqBtn" parent="Uif-SecondaryActionButton" p:methodToCall="clearValues" p:actionLabel="Clear Values"/>
+                <ref bean="uif-Ole-CreateNewLink"/>
+                <bean id="cancelReqBtn" parent="Uif-SecondaryActionButton" p:methodToCall="cancel" p:actionLabel="Cancel"
                       p:render="@{!#form.renderedInLightBox}"/>
-                <bean id="cancelHisReqBtn" parent="Uif-PrimaryActionButton" p:methodToCall="returnToPrevious" p:actionLabel="Cancel"
+                <bean id="cancelHisReqBtn" parent="Uif-SecondaryActionButton" p:methodToCall="returnToPrevious" p:actionLabel="Cancel"
                       p:render="@{#form.renderedInLightBox}"/>
-                <bean id="homeReqBtn" parent="Uif-PrimaryActionButton" p:methodToCall="returnToHub" p:actionLabel="Home"
+                <bean id="homeReqBtn" parent="Uif-SecondaryActionButton" p:methodToCall="returnToHub" p:actionLabel="Home"
                       p:render="@{#form.renderedInLightBox}"/>
-                <bean id="closeReqBtn" parent="Uif-PrimaryActionButton" p:actionLabel="Close" p:render="@{#form.renderedInLightBox}"
+                <bean id="closeReqBtn" parent="Uif-SecondaryActionButton" p:actionLabel="Close" p:render="@{#form.renderedInLightBox}"
                       p:onClickScript="e.preventDefault();closeLightbox();return false;"/>
             </list>
         </property>
@@ -714,6 +759,7 @@
                     <property name="header.headerText" value="Request" />
                     <property name="items">
                         <list>
+                            <ref bean="OleRequestDocument-InquiryView-EditSection"/>
                             <ref bean="OleRequestDocument-InquiryView-requestDetails"/>
                             <ref bean="OleRequestDocument-InquiryView-recallRequest"/>
                             <ref bean="OleRequestDocument-InquiryView-onHoldRequest"/>
@@ -727,6 +773,9 @@
                 </bean>
             </list>
         </property>
+        <property name="footer">
+            <bean parent="Uif-Ole-InquiryFooter"/>
+        </property>
         <property name="additionalCssFiles">
             <list>
                 <value>/ole/ingest/css/patron.css</value>
@@ -739,6 +788,24 @@
             <list>
                 <bean id="modifiedDetails-inquiry-modifiedDates" parent="Uif-InputField" p:propertyName="modifiedDate" />
                 <bean id="modifiedDetails-inquiry-operatorModifiedIds" parent="Uif-InputField" p:propertyName="operatorModifiedId"/>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="OleRequestDocument-InquiryView-EditSection" parent="Uif-VerticalBoxSection">
+        <property name="items">
+            <list>
+                <bean id="requestRecordLink" parent="Uif-LinkField" p:target="_blank"
+                      p:style="height:25px;font-size:10px;width:70px"
+                      p:href="deliverRequestMaintenance?requestId=@{dataObject.requestId}&amp;methodToCall=maintenanceEdit&amp;dataObjectClassName=org.kuali.ole.deliver.bo.OleDeliverRequestBo&amp;viewTypeName=MAINTENANCE&amp;dialogMode=true&amp;showHome=false&amp;showHistory=false"
+                      p:linkText="Edit Request">
+                    <property name="cssClasses">
+                        <list merge="true">
+                            <value>uif-smallActionButton</value>
+                        </list>
+                    </property>
+                </bean>
+
             </list>
         </property>
     </bean>
@@ -759,6 +826,7 @@
                 <bean id="borrowerId-inquiry-proxyBorrowerLName" parent="Uif-InputField" p:propertyName="proxyBorrowerLastName" p:label="proxy patron last name" p:render="@{dataObject.proxyBorrowerId ne null}"/>
                 <bean id="operatorCreateId-inquiry-operatorCreateId" parent="Uif-InputField" p:propertyName="operatorCreateId" p:render="@{dataObject.operatorCreateId ne null}"/>
                 <bean id="borrowerId-inquiry-operateCreateName" parent="Uif-InputField" p:propertyName="operatorCreateId" p:label="Operator name" p:render="@{dataObject.operatorCreateId ne null}"/>
+                <bean id="request-inquiry-requestNote" parent="Uif-InputField" p:propertyName="requestNote" p:label="Request Note"/>
             </list>
         </property>
     </bean>
@@ -784,6 +852,8 @@
                 </bean>
                 <bean id="recallInquiryRequest-expirationDate" parent="Uif-InputField" p:propertyName="requestExpiryDate">
                 </bean>
+                <bean id="recallInquiryRequest-onHoldExpirationDate" p:label="Hold Expiration Date" parent="Uif-InputField" p:propertyName="holdExpirationDate" p:render="@{dataObject.requestTypeId ne null}"/>
+
             </list>
         </property>
     </bean>
@@ -809,7 +879,7 @@
                 </bean>
                 <bean id="onHoldRequestRequest-expirationDate" parent="Uif-InputField" p:propertyName="requestExpiryDate">
                 </bean>
-                <bean id="HoldExpirationDate-InquiryView" p:label="Hold Expiration Date" parent="Uif-InputField" p:propertyName="holdExpirationDate" p:render="@{dataObject.requestTypeId ne null}">
+                <bean id="onHoldRequestRequest-onHoldExpirationDate" p:label="Hold Expiration Date" parent="Uif-InputField" p:propertyName="holdExpirationDate" p:render="@{dataObject.requestTypeId ne null}">
                 </bean>
             </list>
         </property>
@@ -830,9 +900,11 @@
                 <bean id="pageRequest-requestLevel" parent="Uif-InputField" p:propertyName="requestLevel"/>
                 <bean  id="pageRequest-inquiryItemDetails-pickUpLocationId" parent="Uif-InputField" p:propertyName="pickUpLocationCode" p:label="Pickup Location"/>
                 <bean id="pageRequest-inquiryItemDetails-createDate"  parent="Uif-InputField" p:propertyName="createDate">
-
                 </bean>
                 <bean id="pageRequest-inquiryItemDetails-expirationDate"  parent="Uif-InputField" p:propertyName="requestExpiryDate"/>
+                <bean id="pageRequest-onHoldExpirationDate" p:label="Hold Expiration Date" parent="Uif-InputField" p:propertyName="holdExpirationDate" p:render="@{dataObject.requestTypeId ne null}">
+                </bean>
+
             </list>
         </property>
     </bean>

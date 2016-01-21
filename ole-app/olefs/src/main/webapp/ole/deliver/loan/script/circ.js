@@ -1,9 +1,18 @@
 function openLightboxOnLoad(dialogId) {
     showLightboxComponent(dialogId, {closeBtn:false});
     jQuery('.uif-dialogButtons').button();
-    if(dialogId == 'checkinMissingPieceDialog'){
-        document.getElementById('checkinMissingPieceDialog').style='height:180px;overflow-y:scroll';
-    }
+}
+
+function toggleCurrentLoanSection(){
+    jq( "#currentLoanListSection-HorizontalBoxSection" ).click(function() {
+        jq( "#currentLoanList-HorizontalBoxSection" ).toggle();
+    });
+}
+
+function toggleExistingLoanSection(){
+    jq( "#existingLoanItemListSection-HorizontalBoxSection" ).click(function() {
+        jq( "#existingLoanItemList-HorizontalBoxSection" ).toggle();
+    });
 }
 
 function openLightboxOnLoadWithOverrideParameters(dialogId,overrideParameters) {
@@ -78,7 +87,9 @@ jq(".patronCheckBoxListClass").live("click", function () {
 function oleCircPager(linkElement, collectionId) {
     var link = jQuery(linkElement);
     if (link.parent().is(kradVariables.ACTIVE_CLASS)) return;
-    retrieveComponent(collectionId, "newPage", null, {
+    retrieveComponent(collectionId, "newPage", function(){
+        destroyDataTableForExistingLoanAndCreateNewDataTable();
+    }, {
         "pageNumber": link.data(kradVariables.PAGE_NUMBER_DATA)
     }, true);
 }
@@ -145,7 +156,13 @@ jq(document).ready(function () {
             submitForm('clearSession', null, null, null, null)
         }
     }, 60000);
-
+    jq("input:text").live("click", function () {
+        if (jq(this).attr("id") == undefined) {
+            if (jq(this).parent().parent().attr("class") == "dataTables_filter") {
+                jq(this).attr("id", "dataTextSearchBox");
+            }
+        }
+    });
 });
 
 function setTimeoutInterval(interval){
@@ -213,7 +230,6 @@ function populateDueDateForAlterDueDateDialog(jsonContentForAlterDueDateDialog){
 function enableDataTableForExistingLoanedItem(){
     var pageSize = jq("#existingLoanItemTable_length").val();
     jq('#existingLoanItemTable').DataTable( {
-        "bFilter": false,
         "bLengthChange": false,
         "iDisplayLength" : pageSize
     } );

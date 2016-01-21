@@ -5,6 +5,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.commons.collections.CollectionUtils;
 import org.joda.time.DateTime;
+import org.kuali.ole.DocumentUniqueIDPrefix;
 import org.kuali.ole.OLEConstants;
 import org.kuali.ole.coa.businessobject.*;
 import org.kuali.ole.describe.form.WorkEInstanceOlemlForm;
@@ -19,6 +20,7 @@ import org.kuali.ole.docstore.common.search.SearchParams;
 import org.kuali.ole.docstore.common.search.SearchResponse;
 import org.kuali.ole.docstore.common.search.SearchResult;
 import org.kuali.ole.docstore.common.search.SearchResultField;
+import org.kuali.ole.docstore.engine.service.storage.rdbms.pojo.HoldingsUriRecord;
 import org.kuali.ole.module.purap.PurapConstants;
 import org.kuali.ole.module.purap.businessobject.PurApAccountingLine;
 import org.kuali.ole.module.purap.businessobject.PurchaseOrderType;
@@ -1580,50 +1582,7 @@ public class OLEEResourceSearchServiceImpl implements OLEEResourceSearchService 
 
     private void getPOInvoiceFromCopy(String title, OleCopy copy, List<OLEEResourcePO> oleeResourcePOs, List<OLEEResourceInvoices> oleeResourceInvoiceses) {
 
-        Map<String, String> criteriaPOIdMap = new HashMap<String, String>();
-        criteriaPOIdMap.put(OLEConstants.OLEEResourceRecord.PO_ITEM_ID, copy.getPoItemId().toString());
-        List<OlePurchaseOrderItem> olePurchaseOrderItems = (List<OlePurchaseOrderItem>) getBusinessObjectService().findMatching(OlePurchaseOrderItem.class, criteriaPOIdMap);
-        if (olePurchaseOrderItems.size() > 0) {
-            for (OlePurchaseOrderItem olePurchaseOrderItem : olePurchaseOrderItems) {
-                if (olePurchaseOrderItem != null && olePurchaseOrderItem.isItemActiveIndicator()) {
-                    Map map = new HashMap();
-                    map.put(OLEConstants.DOC_NUM, olePurchaseOrderItem.getDocumentNumber());
-                    OlePurchaseOrderDocument olePurchaseOrderDocument = getBusinessObjectService().findByPrimaryKey(OlePurchaseOrderDocument.class, map);
-                    if (olePurchaseOrderDocument != null) {
-                        DocumentHeader documentHeader = (FinancialSystemDocumentHeader) SpringContext.getBean(DocumentHeaderService.class).getDocumentHeaderById(olePurchaseOrderDocument.getDocumentNumber());
-                        if (documentHeader != null) {
-                            olePurchaseOrderDocument.setDocumentHeader(documentHeader);
-                        }
-                        if (olePurchaseOrderDocument.getApplicationDocumentStatus() != null && !olePurchaseOrderDocument.getApplicationDocumentStatus().equals("Retired Version")) {
-                            OLEEResourcePO oleeResourcePO = new OLEEResourcePO();
-                            oleeResourcePO.setTitle(title);
-                            oleeResourcePO.setOlePOItemId(olePurchaseOrderDocument.getPurapDocumentIdentifier());
-                            oleeResourcePO.setPoStatus(olePurchaseOrderDocument.getApplicationDocumentStatus());
-                            if(StringUtils.isNotBlank(olePurchaseOrderItem.getPurposeId())) {
-                                Map<String,String> purposeMap = new HashMap<>();
-                                purposeMap.put(OLEConstants.OlePurchaseOrderPurpose.PURCHASE_ORDER_PURPOSE_ID, olePurchaseOrderItem.getPurposeId());
-                                OlePurchaseOrderPurpose olePurchaseOrderPurpose = KRADServiceLocator.getBusinessObjectService().findByPrimaryKey(OlePurchaseOrderPurpose.class, purposeMap);
-                                if(olePurchaseOrderPurpose != null) {
-                                    oleeResourcePO.setPurpose(olePurchaseOrderPurpose.getPurchaseOrderPurposeCode());
-                                }
-                            }
-                            Integer poCreatedYear = olePurchaseOrderDocument.getPostingYear();
-                           // Integer currentYear = Calendar.getInstance().get(Calendar.YEAR);
-                            Integer currentYear = getUniversityDateService().getCurrentFiscalYear();
-                            if (currentYear.compareTo(poCreatedYear) == 0) {
-                                oleeResourcePO.setPaidAmountCurrentFY(olePurchaseOrderItem.getItemInvoicedTotalAmount().intValue());
-                            } else if (currentYear.compareTo(poCreatedYear) == 1) {
-                                oleeResourcePO.setPaidAmountPreviousFY(olePurchaseOrderItem.getItemInvoicedTotalAmount().intValue());
-                            } else if (currentYear.compareTo(poCreatedYear) > 1) {
-                                oleeResourcePO.setPaidAmountTwoYearsPreviousFY(olePurchaseOrderItem.getItemInvoicedTotalAmount().intValue());
-                            }
-                            oleeResourcePO.setVendorDetail(olePurchaseOrderDocument.getVendorDetail());
-                            oleeResourcePOs.add(oleeResourcePO);
-                        }
-                    }
-                }
-            }
-        }
+        getPOFromCopy(title, copy, oleeResourcePOs);
 
 
         Map<String, String> criteriaInvIdMap = new HashMap<String, String>();
@@ -1684,6 +1643,58 @@ public class OLEEResourceSearchServiceImpl implements OLEEResourceSearchService 
                     oleEResInvoice.setAccountingLines(oleeResourceInvoiceAccountingLineList);
                 }
                 oleeResourceInvoiceses.add(oleEResInvoice);
+            }
+        }
+    }
+
+    public void getPOFromCopy(String title, OleCopy copy, List<OLEEResourcePO> oleeResourcePOs) {
+        Map<String, String> criteriaPOIdMap = new HashMap<String, String>();
+        criteriaPOIdMap.put(OLEConstants.OLEEResourceRecord.PO_ITEM_ID, copy.getPoItemId().toString());
+        List<OlePurchaseOrderItem> olePurchaseOrderItems = (List<OlePurchaseOrderItem>) getBusinessObjectService().findMatching(OlePurchaseOrderItem.class, criteriaPOIdMap);
+        if (olePurchaseOrderItems.size() > 0) {
+            for (OlePurchaseOrderItem olePurchaseOrderItem : olePurchaseOrderItems) {
+                if (olePurchaseOrderItem != null && olePurchaseOrderItem.isItemActiveIndicator()) {
+                    Map map = new HashMap();
+                    map.put(OLEConstants.DOC_NUM, olePurchaseOrderItem.getDocumentNumber());
+                    OlePurchaseOrderDocument olePurchaseOrderDocument = getBusinessObjectService().findByPrimaryKey(OlePurchaseOrderDocument.class, map);
+                    if (olePurchaseOrderDocument != null) {
+                        DocumentHeader documentHeader = (FinancialSystemDocumentHeader) SpringContext.getBean(DocumentHeaderService.class).getDocumentHeaderById(olePurchaseOrderDocument.getDocumentNumber());
+                        if (documentHeader != null) {
+                            olePurchaseOrderDocument.setDocumentHeader(documentHeader);
+                        }
+                        if (olePurchaseOrderDocument.getApplicationDocumentStatus() != null && !olePurchaseOrderDocument.getApplicationDocumentStatus().equals("Retired Version")) {
+                            OLEEResourcePO oleeResourcePO = new OLEEResourcePO();
+                            oleeResourcePO.setTitle(title);
+                            oleeResourcePO.setOlePOItemId(olePurchaseOrderDocument.getPurapDocumentIdentifier());
+                            oleeResourcePO.setPoStatus(olePurchaseOrderDocument.getApplicationDocumentStatus());
+                            if(StringUtils.isNotBlank(olePurchaseOrderItem.getPurposeId())) {
+                                Map<String,String> purposeMap = new HashMap<>();
+                                purposeMap.put(OLEConstants.OlePurchaseOrderPurpose.PURCHASE_ORDER_PURPOSE_ID, olePurchaseOrderItem.getPurposeId());
+                                OlePurchaseOrderPurpose olePurchaseOrderPurpose = KRADServiceLocator.getBusinessObjectService().findByPrimaryKey(OlePurchaseOrderPurpose.class, purposeMap);
+                                if(olePurchaseOrderPurpose != null) {
+                                    oleeResourcePO.setPurpose(olePurchaseOrderPurpose.getPurchaseOrderPurposeCode());
+                                }
+                            }
+                            Integer poCreatedYear = olePurchaseOrderDocument.getPostingYear();
+                            KualiDecimal currentFYCost = new KualiDecimal(0);
+                            KualiDecimal previousYearFYCost = new KualiDecimal(0);
+                            KualiDecimal previousTwoYearFYCost = new KualiDecimal(0);
+                            Integer currentYear = getUniversityDateService().getCurrentFiscalYear();
+                            if (currentYear.compareTo(poCreatedYear) == 0) {
+                                currentFYCost = currentFYCost.add(getInvoicedAmount(String.valueOf(olePurchaseOrderDocument.getPurapDocumentIdentifier()).trim()));
+                                oleeResourcePO.setPaidAmountCurrentFY(currentFYCost.toString());
+                            } else if (currentYear.compareTo(poCreatedYear) == 1) {
+                                previousYearFYCost = previousYearFYCost.add(getInvoicedAmountForPreviousFY(String.valueOf(olePurchaseOrderDocument.getPurapDocumentIdentifier()).trim()));
+                                oleeResourcePO.setPaidAmountPreviousFY(previousYearFYCost.toString());
+                            } else if (currentYear.compareTo(poCreatedYear) > 1) {
+                                previousTwoYearFYCost = previousTwoYearFYCost.add(getInvoicedAmountForTwoPreviousFY(String.valueOf(olePurchaseOrderDocument.getPurapDocumentIdentifier()).trim()));
+                                oleeResourcePO.setPaidAmountTwoYearsPreviousFY(previousTwoYearFYCost.toString());
+                            }
+                            oleeResourcePO.setVendorDetail(olePurchaseOrderDocument.getVendorDetail());
+                            oleeResourcePOs.add(oleeResourcePO);
+                        }
+                    }
+                }
             }
         }
     }
@@ -3095,6 +3106,9 @@ public class OLEEResourceSearchServiceImpl implements OLEEResourceSearchService 
     }
 
     public void getAcquisitionInfoFromPOAndInvoice(String holdingsId,WorkEInstanceOlemlForm workEInstanceOlemlForm) {
+        if (!DocumentUniqueIDPrefix.hasPrefix(holdingsId)) {
+            holdingsId = DocumentUniqueIDPrefix.getPrefixedId(DocumentUniqueIDPrefix.PREFIX_WORK_HOLDINGS_OLEML, holdingsId);
+        }
         Map map = new HashMap();
         map.put(OLEConstants.INSTANCE_ID, holdingsId);
         List<OleCopy> oleCopyList = (List) getBusinessObjectService().findMatching(OleCopy.class, map);
@@ -3293,6 +3307,88 @@ public class OLEEResourceSearchServiceImpl implements OLEEResourceSearchService 
         preqMap.clear();
         preqMap.put(OLEConstants.PUR_ORDER_IDENTIFIER,poId);
         preqMap.put(OLEConstants.POSTING_YEAR,currentYear);
+        List<OleVendorCreditMemoDocument> vendorCreditMemoDocumentList = (List) getBusinessObjectService().findMatching(OleVendorCreditMemoDocument.class,preqMap);
+        if(vendorCreditMemoDocumentList.size() > 0) {
+            for(OleVendorCreditMemoDocument vendorCreditMemoDocument : vendorCreditMemoDocumentList) {
+                preqMap.clear();
+                preqMap.put(OLEConstants.PURAP_DOC_IDENTIFIER,vendorCreditMemoDocument.getPurapDocumentIdentifier());
+                preqMap.put(OLEConstants.ITEM_TYPE_CODE,OLEConstants.ITEM_TYP_CD_VALUE);
+                List<OleCreditMemoItem> creditMemoItemList = (List) getBusinessObjectService().findMatching(OleCreditMemoItem.class,preqMap);
+                if(creditMemoItemList.size() > 0) {
+                    for(OleCreditMemoItem creditMemoItem : creditMemoItemList) {
+                        itemUnitPrice = itemUnitPrice.subtract(creditMemoItem.getItemUnitPrice());
+                    }
+                }
+
+            }
+        }
+        return new KualiDecimal(itemUnitPrice);
+    }
+
+    public KualiDecimal getInvoicedAmountForPreviousFY(String poId) {
+        BigDecimal itemUnitPrice = BigDecimal.ZERO;
+        Integer previousYear = new Integer(SpringContext.getBean(UniversityDateService.class).getCurrentFiscalYear().intValue() - 1);
+        Map preqMap = new HashMap();
+        preqMap.put(OLEConstants.PUR_ORDER_IDENTIFIER,poId);
+        preqMap.put(OLEConstants.POSTING_YEAR,previousYear);
+        List<OlePaymentRequestDocument> olePaymentRequestDocumentList = (List) getBusinessObjectService().findMatching(OlePaymentRequestDocument.class, preqMap);
+        if(olePaymentRequestDocumentList.size() > 0) {
+            for(OlePaymentRequestDocument olePaymentRequestDocument : olePaymentRequestDocumentList) {
+                preqMap.clear();
+                preqMap.put(OLEConstants.PURAP_DOC_IDENTIFIER,olePaymentRequestDocument.getPurapDocumentIdentifier());
+                preqMap.put(OLEConstants.ITEM_TYPE_CODE,OLEConstants.ITEM_TYP_CD_VALUE);
+                List<OlePaymentRequestItem> olePaymentRequestItemList = (List) getBusinessObjectService().findMatching(OlePaymentRequestItem.class,preqMap);
+                if(olePaymentRequestItemList.size() > 0) {
+                    for(OlePaymentRequestItem olePaymentRequestItem : olePaymentRequestItemList) {
+                        itemUnitPrice = itemUnitPrice.add(olePaymentRequestItem.getItemUnitPrice());
+                    }
+                }
+            }
+        }
+        preqMap.clear();
+        preqMap.put(OLEConstants.PUR_ORDER_IDENTIFIER,poId);
+        preqMap.put(OLEConstants.POSTING_YEAR,previousYear);
+        List<OleVendorCreditMemoDocument> vendorCreditMemoDocumentList = (List) getBusinessObjectService().findMatching(OleVendorCreditMemoDocument.class,preqMap);
+        if(vendorCreditMemoDocumentList.size() > 0) {
+            for(OleVendorCreditMemoDocument vendorCreditMemoDocument : vendorCreditMemoDocumentList) {
+                preqMap.clear();
+                preqMap.put(OLEConstants.PURAP_DOC_IDENTIFIER,vendorCreditMemoDocument.getPurapDocumentIdentifier());
+                preqMap.put(OLEConstants.ITEM_TYPE_CODE,OLEConstants.ITEM_TYP_CD_VALUE);
+                List<OleCreditMemoItem> creditMemoItemList = (List) getBusinessObjectService().findMatching(OleCreditMemoItem.class,preqMap);
+                if(creditMemoItemList.size() > 0) {
+                    for(OleCreditMemoItem creditMemoItem : creditMemoItemList) {
+                        itemUnitPrice = itemUnitPrice.subtract(creditMemoItem.getItemUnitPrice());
+                    }
+                }
+
+            }
+        }
+        return new KualiDecimal(itemUnitPrice);
+    }
+
+    public KualiDecimal getInvoicedAmountForTwoPreviousFY(String poId) {
+        BigDecimal itemUnitPrice = BigDecimal.ZERO;
+        Integer previousYear = new Integer(SpringContext.getBean(UniversityDateService.class).getCurrentFiscalYear().intValue() - 2);
+        Map preqMap = new HashMap();
+        preqMap.put(OLEConstants.PUR_ORDER_IDENTIFIER,poId);
+        preqMap.put(OLEConstants.POSTING_YEAR,previousYear);
+        List<OlePaymentRequestDocument> olePaymentRequestDocumentList = (List) getBusinessObjectService().findMatching(OlePaymentRequestDocument.class, preqMap);
+        if(olePaymentRequestDocumentList.size() > 0) {
+            for(OlePaymentRequestDocument olePaymentRequestDocument : olePaymentRequestDocumentList) {
+                preqMap.clear();
+                preqMap.put(OLEConstants.PURAP_DOC_IDENTIFIER,olePaymentRequestDocument.getPurapDocumentIdentifier());
+                preqMap.put(OLEConstants.ITEM_TYPE_CODE,OLEConstants.ITEM_TYP_CD_VALUE);
+                List<OlePaymentRequestItem> olePaymentRequestItemList = (List) getBusinessObjectService().findMatching(OlePaymentRequestItem.class,preqMap);
+                if(olePaymentRequestItemList.size() > 0) {
+                    for(OlePaymentRequestItem olePaymentRequestItem : olePaymentRequestItemList) {
+                        itemUnitPrice = itemUnitPrice.add(olePaymentRequestItem.getItemUnitPrice());
+                    }
+                }
+            }
+        }
+        preqMap.clear();
+        preqMap.put(OLEConstants.PUR_ORDER_IDENTIFIER,poId);
+        preqMap.put(OLEConstants.POSTING_YEAR,previousYear);
         List<OleVendorCreditMemoDocument> vendorCreditMemoDocumentList = (List) getBusinessObjectService().findMatching(OleVendorCreditMemoDocument.class,preqMap);
         if(vendorCreditMemoDocumentList.size() > 0) {
             for(OleVendorCreditMemoDocument vendorCreditMemoDocument : vendorCreditMemoDocumentList) {
@@ -4679,6 +4775,7 @@ public class OLEEResourceSearchServiceImpl implements OLEEResourceSearchService 
             Map ids = new HashMap();
             ids.put("oleERSIdentifier", oleeResourceRecordDocument.getOleERSIdentifier());
             List<OLEEResourceInstance> oleeResourceInstances = (List<OLEEResourceInstance>) getBusinessObjectService().findMatching(OLEEResourceInstance.class, ids);
+            oleeResourceInstances = populateUrlForHoldings(oleeResourceInstances);
             oleeResourceRecordDocument.geteRSInstances().clear();
             oleeResourceRecordDocument.geteRSInstances().addAll(oleeResourceInstances);
             oleeResourceRecordDocument.setOleERSInstances(oleeResourceInstances);
@@ -4698,7 +4795,43 @@ public class OLEEResourceSearchServiceImpl implements OLEEResourceSearchService 
         return oleeResourceRecordDocument;
     }
 
-
+    public List<OLEEResourceInstance> populateUrlForHoldings(List<OLEEResourceInstance> oleEResourceInstances) {
+        Set<String> holdingIds = new HashSet<>();
+        for(OLEEResourceInstance oleeResourceInstance : oleEResourceInstances) {
+            holdingIds.add(DocumentUniqueIDPrefix.getDocumentId(oleeResourceInstance.getInstanceId()));
+        }
+        if(CollectionUtils.isNotEmpty(holdingIds)) {
+            Map linkMap = new HashMap<>();
+            linkMap.put("holdingsId",holdingIds);
+            List<HoldingsUriRecord> holdingsUriRecordList = (List<HoldingsUriRecord>) getBusinessObjectService().findMatching(HoldingsUriRecord.class, linkMap);
+            if(CollectionUtils.isNotEmpty(holdingsUriRecordList)) {
+                for(OLEEResourceInstance oleeResourceInstance : oleEResourceInstances) {
+                    String url = "";
+                    List<String> urlList = new ArrayList<>();
+                    for(HoldingsUriRecord holdingsUriRecord : holdingsUriRecordList) {
+                        if(StringUtils.isNotBlank(holdingsUriRecord.getHoldingsId()) && holdingsUriRecord.getHoldingsId().equals(DocumentUniqueIDPrefix.getDocumentId(oleeResourceInstance.getInstanceId()))) {
+                            if(StringUtils.isNotBlank(holdingsUriRecord.getUri())) {
+                                urlList.add(holdingsUriRecord.getUri());
+                            }
+                        }
+                    }
+                    if(CollectionUtils.isNotEmpty(urlList)) {
+                        for(int i=0 ; i<urlList.size() ; i++) {
+                            if(i == 0) {
+                                url = urlList.get(i);
+                            } else {
+                                url = url + "," + urlList.get(i);
+                            }
+                        }
+                    }
+                    if(StringUtils.isNotBlank(url)) {
+                        oleeResourceInstance.setUrl(url);
+                    }
+                }
+            }
+        }
+        return oleEResourceInstances;
+    }
 
     public UniversityDateService getUniversityDateService() {
         if(universityDateService == null) {

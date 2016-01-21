@@ -3,7 +3,7 @@
     <parent>
         <artifactId>ole-liquibase</artifactId>
         <groupId>org.kuali.ole</groupId>
-        <version>2.0-SNAPSHOT</version>
+        <version>2.1-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -184,6 +184,19 @@
                                     </goals>
                                     <configuration>
                                         <changeLogFile>org/kuali/ole/2.0/db.changelog-20141229.xml</changeLogFile>
+                                        <verbose>true</verbose>
+                                        <defaultSchemaName>OLE</defaultSchemaName>
+                                    </configuration>
+                                </execution>
+
+                                <execution>
+                                    <id>db.changelog-2.1</id>
+                                    <phase>${lb.phase}</phase>
+                                    <goals>
+                                        <goal>updateSQL</goal>
+                                    </goals>
+                                    <configuration>
+                                        <changeLogFile>org/kuali/ole/2.1/db.changelog-20151123.xml</changeLogFile>
                                         <verbose>true</verbose>
                                         <defaultSchemaName>OLE</defaultSchemaName>
                                     </configuration>
@@ -483,6 +496,19 @@
                                     <configuration>
                                         <changeLogFile>org/kuali/ole/2.0/db.changelog-20141229.xml</changeLogFile>
                                         <migrationSqlOutputFile>${lb.sql.dir}/2.0.sql
+                                        </migrationSqlOutputFile>
+                                    </configuration>
+                                </execution>
+
+                                <execution>
+                                    <id>db.changelog-2.1</id>
+                                    <phase>${lb.phase}</phase>
+                                    <goals>
+                                        <goal>updateSQL</goal>
+                                    </goals>
+                                    <configuration>
+                                        <changeLogFile>org/kuali/ole/2.1/db.changelog-20151123.xml</changeLogFile>
+                                        <migrationSqlOutputFile>${lb.sql.dir}/2.1.sql
                                         </migrationSqlOutputFile>
                                     </configuration>
                                 </execution>

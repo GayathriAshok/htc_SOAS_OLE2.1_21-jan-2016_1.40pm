@@ -1,0 +1,29 @@
+package org.kuali.ole.deliver.rules.demo.fines
+
+import org.kuali.ole.OLEConstants
+import org.kuali.ole.deliver.bo.OleLoanDocument
+import org.kuali.ole.deliver.bo.OlePatronDocument
+import org.kuali.ole.deliver.util.OleItemRecordForCirc
+import org.kuali.ole.deliver.util.ItemFineRate
+import org.kuali.ole.deliver.drools.DroolsConstants
+import org.kuali.ole.deliver.bo.PatronBillPayment
+
+
+rule "Items hourly fines "
+agenda-group "fine validation"
+activation-group "fine validation"
+when
+
+$f: ItemFineRate()
+
+$i: OleItemRecordForCirc(getItemType() in ("DAY01"),
+getItemLibraryLocation() in ("B-EDUC"))
+
+$p: OlePatronDocument(getBorrowerTypeCode() in ("UGRAD"))
+
+then
+$f.setFineRate(5.00);
+$f.setMaxFine(100.00);
+$f.setInterval("h"); //Options are H-Hours; D-Days
+
+  end

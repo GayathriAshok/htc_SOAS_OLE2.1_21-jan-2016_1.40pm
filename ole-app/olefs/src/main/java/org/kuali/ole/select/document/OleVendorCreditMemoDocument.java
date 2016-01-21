@@ -425,15 +425,15 @@ public class OleVendorCreditMemoDocument extends VendorCreditMemoDocument {
     public KualiDecimal getGrandTotal() {
         KualiDecimal grandTotal = KualiDecimal.ZERO;
 
-        if ((this.prorateBy != null) && (this.prorateBy.equals(OLEConstants.PRORATE_BY_QTY) || this.prorateBy.equals(OLEConstants.PRORATE_BY_DOLLAR) || this.prorateBy.equals(OLEConstants.MANUAL_PRORATE))) {
-
+        if ((this.prorateBy != null) && (this.prorateBy.equals(OLEConstants.PRORATE_BY_QTY) || this.prorateBy.equals(OLEConstants.PRORATE_BY_DOLLAR)
+                || this.prorateBy.equals(OLEConstants.MANUAL_PRORATE) || this.prorateBy.equals(OLEConstants.NO_PRORATE))) {
 
             for (CreditMemoItem item : (List<CreditMemoItem>) getItems()) {
                 item.refreshReferenceObject(PurapPropertyConstants.ITEM_TYPE);
 
                 if (item.getTotalAmount() != null) {
 
-                    if (!StringUtils.equals(PurapConstants.ItemTypeCodes.ITEM_TYPE_RESTCK_FEE_CODE, item.getItemTypeCode()) && !StringUtils.equals(PurapConstants.ItemTypeCodes.ITEM_TYPE_MISC_CRDT_CODE, item.getItemTypeCode())) {
+                    if (!StringUtils.equals(PurapConstants.ItemTypeCodes.ITEM_TYPE_RESTCK_FEE_CODE, item.getItemTypeCode())) {
                         if (item.getExtendedPrice() != null) {
                             grandTotal = grandTotal.add(item.getExtendedPrice());
                         }
@@ -456,7 +456,8 @@ public class OleVendorCreditMemoDocument extends VendorCreditMemoDocument {
 
     @Override
     public KualiDecimal getTotalDollarAmountAllItems(String[] excludedTypes) {
-        if ((this.prorateBy != null) && (this.prorateBy.equals(OLEConstants.PRORATE_BY_QTY) || this.prorateBy.equals(OLEConstants.PRORATE_BY_DOLLAR) || this.prorateBy.equals(OLEConstants.MANUAL_PRORATE))) {
+        if ((this.prorateBy != null) && (this.prorateBy.equals(OLEConstants.PRORATE_BY_QTY) || this.prorateBy.equals(OLEConstants.PRORATE_BY_DOLLAR)
+                || this.prorateBy.equals(OLEConstants.MANUAL_PRORATE) || this.prorateBy.equals(OLEConstants.NO_PRORATE))) {
             return getTotalDollarAmountWithExclusions(excludedTypes, false);
         } else {
             return getTotalDollarAmountWithExclusions(excludedTypes, true);
@@ -465,7 +466,8 @@ public class OleVendorCreditMemoDocument extends VendorCreditMemoDocument {
 
     @Override
     public KualiDecimal getTotalPreTaxDollarAmountAllItems(String[] excludedTypes) {
-        if ((this.prorateBy != null) && (this.prorateBy.equals(OLEConstants.PRORATE_BY_QTY) || this.prorateBy.equals(OLEConstants.PRORATE_BY_DOLLAR) || this.prorateBy.equals(OLEConstants.MANUAL_PRORATE))) {
+        if ((this.prorateBy != null) && (this.prorateBy.equals(OLEConstants.PRORATE_BY_QTY) || this.prorateBy.equals(OLEConstants.PRORATE_BY_DOLLAR)
+                || this.prorateBy.equals(OLEConstants.MANUAL_PRORATE) || this.prorateBy.equals(OLEConstants.NO_PRORATE))) {
             return getTotalPreTaxDollarAmountWithExclusions(excludedTypes, false);
         } else {
             return getTotalPreTaxDollarAmountWithExclusions(excludedTypes, true);
@@ -474,7 +476,8 @@ public class OleVendorCreditMemoDocument extends VendorCreditMemoDocument {
 
     @Override
     public KualiDecimal getTotalPreTaxDollarAmountAboveLineItems() {
-        if ((this.prorateBy != null) && (this.prorateBy.equals(OLEConstants.PRORATE_BY_QTY) || this.prorateBy.equals(OLEConstants.PRORATE_BY_DOLLAR) || this.prorateBy.equals(OLEConstants.MANUAL_PRORATE))) {
+        if ((this.prorateBy != null) && (this.prorateBy.equals(OLEConstants.PRORATE_BY_QTY) || this.prorateBy.equals(OLEConstants.PRORATE_BY_DOLLAR) ||
+                this.prorateBy.equals(OLEConstants.MANUAL_PRORATE) || this.prorateBy.equals(OLEConstants.NO_PRORATE))) {
             KualiDecimal addChargeItem = KualiDecimal.ZERO;
             KualiDecimal lineItemPreTaxTotal = KualiDecimal.ZERO;
             KualiDecimal prorateSurcharge = KualiDecimal.ZERO;

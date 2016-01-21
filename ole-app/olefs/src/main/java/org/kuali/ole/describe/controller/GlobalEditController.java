@@ -10,6 +10,7 @@ import org.kuali.ole.describe.bo.SearchResultDisplayRow;
 import org.kuali.ole.describe.form.*;
 import org.kuali.ole.describe.form.GlobalEditForm;
 import org.kuali.ole.docstore.common.client.DocstoreClientLocator;
+import org.kuali.ole.docstore.common.document.*;
 import org.kuali.ole.docstore.common.document.config.DocFieldConfig;
 import org.kuali.ole.docstore.common.document.config.DocFormatConfig;
 import org.kuali.ole.docstore.common.document.config.DocTypeConfig;
@@ -139,6 +140,66 @@ public class GlobalEditController extends OLESearchController {
         return navigate(globalEditForm, result, request, response);
     }
 
+
+    @RequestMapping(params = "methodToCall=pageNumberSearch")
+    public ModelAndView pageNumberSearch(@ModelAttribute("KualiForm") UifFormBase form, BindingResult result,
+                                         HttpServletRequest request, HttpServletResponse response) throws Exception {
+        GlobalEditForm globalEditForm = (GlobalEditForm) form;
+        SearchParams searchParams = globalEditForm.getSearchParams();
+        try {
+            int start = Math.max(0,
+                    (Integer.parseInt(globalEditForm.getPageNumber()) - 1)
+                            * globalEditForm.getPageSize());
+            List<SearchResultDisplayRow> searchResultDisplayRows = globalEditForm.getOriginalSearchResultDisplayRowList();
+            int end = Integer.parseInt(globalEditForm.getPageNumber()) * globalEditForm.getPageSize();
+            searchParams.setStartIndex(start);
+            if (searchResultDisplayRows.size() >= start) {
+                if (searchResultDisplayRows.size() > end) {
+                    globalEditForm.setSearchResultDisplayRowList(searchResultDisplayRows.subList(globalEditForm.getStart(), end));
+                } else {
+                    globalEditForm.setSearchResultDisplayRowList(searchResultDisplayRows.subList(start, searchResultDisplayRows.size()));
+                }
+
+            }
+
+        } catch (NumberFormatException e) {
+            LOG.warn("Invalid page number " + globalEditForm.getPageNumber(), e);
+        }
+
+        return navigate(globalEditForm, result, request, response);
+    }
+
+
+
+    @RequestMapping(params = "methodToCall=lastPageSearch")
+    public ModelAndView lastPageSearch(@ModelAttribute("KualiForm") UifFormBase form, BindingResult result,
+                                       HttpServletRequest request, HttpServletResponse response) throws Exception {
+        GlobalEditForm globalEditForm = (GlobalEditForm) form;
+        List<SearchResultDisplayRow> searchResultDisplayRows = globalEditForm.getOriginalSearchResultDisplayRowList();
+        SearchParams searchParams = globalEditForm.getSearchParams();
+        try {
+            int totalcount = globalEditForm.getTotalRecordCount();
+            int pageSize = globalEditForm.getPageSize();
+            int totlaPages = totalcount/pageSize;
+            int lastNumber= pageSize*totlaPages;
+            int lastPage = totalcount - pageSize;
+            globalEditForm.setPageNumber(Integer.toString(totlaPages));
+            if(lastNumber < totalcount){
+                lastPage = lastNumber;
+                globalEditForm.setPageNumber(Integer.toString(totlaPages+1));
+            }
+            int start = Math.max(0, lastPage);
+            searchParams.setStartIndex(start);
+            globalEditForm.setSearchResultDisplayRowList(searchResultDisplayRows.subList(start, searchResultDisplayRows.size()));
+
+
+        } catch (NumberFormatException e) {
+            LOG.warn("Invalid page number " + globalEditForm.getPageNumber(), e);
+        }
+        return navigate(globalEditForm, result, request, response);
+    }
+
+
     @Override
     @RequestMapping(params = "methodToCall=search")
     public ModelAndView search(@ModelAttribute("KualiForm") UifFormBase form, BindingResult result,
@@ -175,7 +236,8 @@ public class GlobalEditController extends OLESearchController {
             fileName = file.getOriginalFilename();
             BufferedReader reader = new BufferedReader(new InputStreamReader(file.getInputStream()));
             for (String line; (line = reader.readLine()) != null; ) {
-                inputData.add(line);
+               if(StringUtils.isNotEmpty(line))
+                 inputData.add(line);
             }
         } else {
             //GlobalVariables.getMessageMap().putError(KRADConstants.GLOBAL_ERRORS, OLEConstants.DESCRIBE_GLOBAL_SEARCH_MESSAGE);
@@ -260,15 +322,22 @@ public class GlobalEditController extends OLESearchController {
             stringBuffer = stringBuffer.deleteCharAt(stringBuffer.length() - 1);
         }
         stringBuffer = stringBuffer.append(stringBuffer1);
-        globalEditForm.setUnMatchedRecords(stringBuffer.toString());
-        globalEditForm.setUnMatchedCount(unMatchedList.size());
-        globalEditForm.setMatchedCount(listFromDB.size());
-        globalEditForm.setSelectedFileName(fileName);
         globalEditForm.setTotalRecords(inputData.size());
+        globalEditForm.setUnMatchedRecords(stringBuffer.toString());
+        globalEditForm.setUnMatchedCount(inputData.size() - globalEditForm.getTotalRecordCount());
+        globalEditForm.setMatchedCount(globalEditForm.getTotalRecordCount());
+        globalEditForm.setSelectedFileName(fileName);
+
         globalEditForm.setViewGlobalEditDispMessageFlag(viewGlobalEditDispMessageFlag);
+        globalEditForm.setOriginalSearchResultDisplayRowList(searchResultDisplayRows);
+        if(searchResultDisplayRows.size() > globalEditForm.getStart()){
+             if(searchResultDisplayRows.size() > globalEditForm.getPageSize()){
+                globalEditForm.setSearchResultDisplayRowList(searchResultDisplayRows.subList(globalEditForm.getStart(),globalEditForm.getPageSize()));
+            }else{
+                 globalEditForm.setSearchResultDisplayRowList(searchResultDisplayRows.subList(globalEditForm.getStart(),searchResultDisplayRows.size()));
+            }
 
-
-        globalEditForm.setSearchResultDisplayRowList(searchResultDisplayRows);
+        }
         if (searchResultDisplayRows.size() == 0) {
             GlobalVariables.getMessageMap().putError(KRADConstants.GLOBAL_ERRORS, OLEConstants.DESCRIBE_GLOBAL_SEARCH_MESSAGE);
         }
@@ -279,6 +348,7 @@ public class GlobalEditController extends OLESearchController {
     private List<SearchResultDisplayRow> getSearchResults(SearchParams searchParams, GlobalEditForm globalEditForm) throws Exception {
         List<SearchResultDisplayRow> searchResultDisplayRows = new ArrayList<>();
         searchParams.setStartIndex(this.start);
+        searchParams.setPageSize(searchParams.getSearchConditions().size());
         for (SearchCondition searchCondition : searchParams.getSearchConditions()) {
             if (searchCondition.getSearchField() == null) {
                 searchCondition.setSearchField(new SearchField());
@@ -396,8 +466,126 @@ public class GlobalEditController extends OLESearchController {
         }
         if (!selectFlag) {
             GlobalVariables.getMessageMap().putInfo(KRADConstants.GLOBAL_INFO, OLEConstants.GLOBAL_EDIT_ADD_RECORDS_MESSAGE);
+        }else{
+            GlobalVariables.getMessageMap().putInfo(KRADConstants.GLOBAL_INFO, OLEConstants.GLOBAL_EDIT_SELECTED_RECORDS_ADD_MESSAGE);
         }
         return navigate(globalEditForm, result, request, response);
+    }
+
+    private boolean canExportToRequestXml(String principalId) {
+        PermissionService service = KimApiServiceLocator.getPermissionService();
+        return service.hasPermission(principalId, OLEConstants.CAT_NAMESPACE, OLEConstants.DESC_WORKBENCH_EXPORT_XML);
+    }
+
+    private void browseDocstoreForLocalIds(OLESearchForm oleSearchForm, HttpServletRequest request) {
+        int pageSize = oleSearchForm.getPageSize();
+        oleSearchForm.setPageSize(40);
+        StringBuilder ids = new StringBuilder();
+        if ("title".equals(oleSearchForm.getBrowseField())) {
+            oleSearchForm.setDocType(org.kuali.ole.docstore.common.document.content.enums.DocType.BIB.getCode());
+            List<SearchResultDisplayRow> searchResultDisplayRowList = getBrowseService().browse(oleSearchForm);
+            for( SearchResultDisplayRow searchResultDisplayRow:searchResultDisplayRowList){
+                ids.append("," + searchResultDisplayRow.getLocalId() +"#"+ searchResultDisplayRow.getBibIdentifier());
+            }
+        } else {
+            String location = getBrowseService().validateLocation(oleSearchForm.getLocation());
+            oleSearchForm.setLocation(location);
+            if (oleSearchForm.getDocType().equalsIgnoreCase(org.kuali.ole.docstore.common.document.content.enums.DocType.ITEM.getCode())) {
+                List<Item> itemList = getBrowseService().browse(oleSearchForm);
+                for( Item item:itemList){
+                    ids.append("," + item.getLocalId() + "#" + item.getHolding().getBib().getId());
+                }
+            } else {
+                List<Holdings> holdingsList = getBrowseService().browse(oleSearchForm);
+                for( Holdings holdings:holdingsList){
+                    ids.append("," + holdings.getLocalId() + "#" + holdings.getBib().getId());
+                }
+            }
+        }
+        oleSearchForm.setPageSize(pageSize);
+        oleSearchForm.setIdsToBeOpened(ids.toString().replaceFirst(",", ""));
+    }
+
+
+    @RequestMapping(params = "methodToCall=exportToXml")
+    public ModelAndView exportToXml(@ModelAttribute("KualiForm") UifFormBase form, BindingResult result,
+                                    HttpServletRequest request, HttpServletResponse response) {
+        GlobalEditForm oleSearchForm = (GlobalEditForm) form;
+        boolean hasPermission = canExportToRequestXml(GlobalVariables.getUserSession().getPrincipalId());
+        if (!hasPermission) {
+            oleSearchForm.setJumpToId("breadcrumb_label");
+            oleSearchForm.setFocusId("breadcrumb_label");
+            GlobalVariables.getMessageMap().putError(KRADConstants.GLOBAL_ERRORS, OLEConstants.ERROR_AUTHORIZATION);
+            return navigate(oleSearchForm, result, request, response);
+        }
+        List<String> idsToExport = new ArrayList<>();
+        if(oleSearchForm.isSelectAllRecords()){
+            if(StringUtils.isEmpty(oleSearchForm.getIdsToBeOpened())){
+                if("browse".equalsIgnoreCase(oleSearchForm.getSearchType())){
+                    browseDocstoreForLocalIds(oleSearchForm, request);
+                }else{
+                    searchDocstoreForLocalIds(oleSearchForm, request);
+                }
+            }
+            String[]  localIds=oleSearchForm.getIdsToBeOpened().split(",");
+            for(String localId:localIds){
+                String[] ids= localId.split("#");
+                idsToExport.add(ids[0]);
+            }
+
+        }else{
+            for (SearchResultDisplayRow searchResultDisplayRow : oleSearchForm.getSearchResultDisplayRowList()) {
+                if(searchResultDisplayRow.isSelect()) {
+                    idsToExport.add(searchResultDisplayRow.getLocalId());
+                }
+            }
+        }
+
+
+        String requestXml = "";
+        if(oleSearchForm.getDocType().equalsIgnoreCase(org.kuali.ole.docstore.common.document.content.enums.DocType.BIB.getCode())) {
+
+            try {
+                BibTrees bibTrees = new BibTrees();
+                for(String id : idsToExport) {
+                    BibTree bibTree =getDocstoreLocalClient().retrieveBibTree(id);
+                    setControlFields(bibTree);
+                    bibTrees.getBibTrees().add(bibTree);
+                }
+                requestXml = BibTrees.serialize(bibTrees);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        if(oleSearchForm.getDocType().equalsIgnoreCase(org.kuali.ole.docstore.common.document.content.enums.DocType.HOLDINGS.getCode())) {
+            try {
+                HoldingsTrees holdingsTrees = new HoldingsTrees();
+                for (String id : idsToExport) {
+                    HoldingsTree holdingsTree = getDocstoreLocalClient().retrieveHoldingsTree(id);
+                    holdingsTrees.getHoldingsTrees().add(holdingsTree);
+                }
+                requestXml = HoldingsTrees.serialize(holdingsTrees);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+        }
+
+        if(oleSearchForm.getDocType().equalsIgnoreCase(org.kuali.ole.docstore.common.document.content.enums.DocType.ITEM.getCode())) {
+            try {
+                List<Item> itemList = getDocstoreLocalClient().retrieveItems(idsToExport);
+                Items items = new Items();
+                items.getItems().addAll(itemList);
+                requestXml = Items.serialize(items);
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        oleSearchForm.setShowRequestXml(true);
+        oleSearchForm.setRequestXMLTextArea(requestXml);
+        return super.navigate(oleSearchForm, result, request, response);
     }
 
     @RequestMapping(params = "methodToCall=globalEdit")

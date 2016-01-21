@@ -1,4 +1,3 @@
-+
 /**
  * Created with IntelliJ IDEA.
  * User: rajeshbabuk
@@ -22,6 +21,12 @@ jq(".sorting_desc").live("click", function () {
 });
 jq(document).ready(function () {
     window.onbeforeunload = null;
+    jq(document).keypress(function(e) {
+        if(e.which == 13) {
+            e.preventDefault();
+            jq('#serial_search_button').click();
+        }
+    });
 });
 jq(window).load(function () {
     jq(".paginate_enabled_next").live("click", function () {
@@ -42,9 +47,6 @@ jq(window).load(function () {
             pageEntriesDisplay();
         }
     });
-
-
-
 
 });
 
@@ -68,8 +70,26 @@ function pageEntriesDisplay() {
             jq(".paginate_disabled_previous").removeClass("paginate_disabled_previous").addClass("paginate_enabled_previous");
         }
     }
+    focusOnShow();
 }
 function setSearchType(){
     jq("#src_flag_control").val("search");
 
+}
+
+function focusOnShow(){
+    var length = jq("#SerialReceivingRecordSearchResult tbody tr").length;
+    if(length != "0"){
+        for(var i=0; i<length; i++){
+            var id = jq("#SerialReceivingRecordSearchResult tbody tr:eq("+ i +") td div a").attr("id");
+            if(jq("#" + id).text() == "Show"){
+                jq("#" + id).focus();
+                document.getElementById(id).scrollIntoView();
+                break;
+            }
+        }
+    }else{
+        jq("#SerialsReceivingRecord_search_button").focus();
+        document.getElementById("SerialsReceivingRecord_search_button").scrollIntoView();
+    }
 }

@@ -1,7 +1,7 @@
 <#macro ole_eResource_search items manager container>
     <#if manager.totalLines gt 0>
         <@search_pagesize manager />
-    <table class="table table-condensed table-bordered uif-tableCollectionLayout dataTable">
+    <table id="instanceDetails" class="table table-condensed table-bordered uif-tableCollectionLayout dataTable">
         <thead>
         <tr>
             <th>Title</th>
@@ -45,7 +45,7 @@
                 </td>
                 <td>${line.row.isbn!}</td>
                 <td>${line.row.instanceHoldings!}</td>
-                <td>${line.row.url!}</td>
+                <td id="eHoldings_url">${line.row.url!}</td>
                 <td>${line.row.publicDisplayNote!}</td>
                 <td>${line.row.instancePublisher!}</td>
                  <td>${line.row.status!}</td>

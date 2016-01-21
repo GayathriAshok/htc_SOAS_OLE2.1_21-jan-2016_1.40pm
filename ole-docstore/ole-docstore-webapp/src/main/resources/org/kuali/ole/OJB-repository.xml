@@ -92,6 +92,7 @@
         <field-descriptor name="currentSubscriptionStartDate" column="CURRENT_SBRCPTN_START_DT" jdbc-type="TIMESTAMP"/>
         <field-descriptor name="currentSubscriptionEndDate" column="CURRENT_SBRCPTN_END_DT" jdbc-type="TIMESTAMP"/>
         <field-descriptor name="initialSubscriptionStartDate" column="INITIAL_SBRCPTN_START_DT" jdbc-type="TIMESTAMP"/>
+        <field-descriptor name="cancellationCandidate" column="CANCELLATION_CANDIDATE" jdbc-type="CHAR" conversion="org.kuali.rice.core.framework.persistence.ojb.conversion.OjbCharBooleanConversion"/>
         <field-descriptor name="cancellationDecisionDate" column="CANCELLATION_DECISION_DT" jdbc-type="TIMESTAMP"/>
         <field-descriptor name="cancellationEffectiveDate" column="CANCELLATION_EFFECTIVE_DT" jdbc-type="TIMESTAMP"/>
         <field-descriptor name="cancellationReason" column="CANCELLATION_REASON" jdbc-type="VARCHAR"/>
@@ -271,6 +272,7 @@
         <field-descriptor name="createdBy" column="CREATED_BY" jdbc-type="VARCHAR"/>
         <field-descriptor name="updatedBy" column="UPDATED_BY" jdbc-type="VARCHAR"/>
         <field-descriptor name="originalDueDate" column="ORG_DUE_DATE_TIME" jdbc-type="TIMESTAMP"/>
+        <field-descriptor name="descriptionOfPieces" column="DESC_OF_PIECES" jdbc-type="VARCHAR"/>
         <reference-descriptor name="itemStatusRecord" class-ref="org.kuali.ole.docstore.engine.service.storage.rdbms.pojo.ItemStatusRecord" auto-retrieve="true" auto-update="none" auto-delete="none">
             <foreignkey field-ref="itemStatusId" />
         </reference-descriptor>
@@ -581,6 +583,39 @@
         <field-descriptor name="damagedPatronId" column="DMGD_PATRON_ID" jdbc-type="VARCHAR" index="true"/>
         <field-descriptor name="operatorId" column="OPERATOR_ID" jdbc-type="VARCHAR" index="true"/>
         <field-descriptor name="itemId" column="ITEM_ID" jdbc-type="VARCHAR"/>
+    </class-descriptor>
+
+    <class-descriptor class="org.kuali.ole.audit.ItemAudit" table="ITEM_AUDIT_T">
+        <field-descriptor name="auditId" column="AUDIT_ID" jdbc-type="INTEGER" primarykey="true" autoincrement="true" sequence-name="ITEM_AUDIT_S"/>
+        <field-descriptor name="foreignKeyRef" column="FOREIGN_KEY_REF" jdbc-type="INTEGER"/>
+        <field-descriptor name="actor" column="ACTOR" jdbc-type="VARCHAR"/>
+        <field-descriptor name="updateDate" column="UPDATE_DATE" jdbc-type="TIMESTAMP"/>
+        <field-descriptor name="columnUpdated" column="COLUMN_UPDATED" jdbc-type="VARCHAR"/>
+        <field-descriptor name="columnValue" column="COLUMN_VALUE" jdbc-type="BLOB"/>
+        <field-descriptor name="objectId" column="OBJ_ID" jdbc-type="VARCHAR" index="true"/>
+        <field-descriptor name="versionNumber" column="VER_NBR" jdbc-type="BIGINT" locking="true" />
+    </class-descriptor>
+
+    <class-descriptor class="org.kuali.ole.audit.BibAudit" table="BIB_AUDIT_T">
+        <field-descriptor name="auditId" column="AUDIT_ID" jdbc-type="INTEGER" primarykey="true" autoincrement="true" sequence-name="BIB_AUDIT_S"/>
+        <field-descriptor name="foreignKeyRef" column="FOREIGN_KEY_REF" jdbc-type="INTEGER"/>
+        <field-descriptor name="actor" column="ACTOR" jdbc-type="VARCHAR"/>
+        <field-descriptor name="updateDate" column="UPDATE_DATE" jdbc-type="TIMESTAMP"/>
+        <field-descriptor name="columnUpdated" column="COLUMN_UPDATED" jdbc-type="VARCHAR"/>
+        <field-descriptor name="columnValue" column="COLUMN_VALUE" jdbc-type="BLOB"/>
+        <field-descriptor name="objectId" column="OBJ_ID" jdbc-type="VARCHAR" index="true"/>
+        <field-descriptor name="versionNumber" column="VER_NBR" jdbc-type="BIGINT" locking="true" />
+    </class-descriptor>
+
+    <class-descriptor class="org.kuali.ole.audit.HoldingsAudit" table="HOLDINGS_AUDIT_T">
+        <field-descriptor name="auditId" column="AUDIT_ID" jdbc-type="INTEGER" primarykey="true" autoincrement="true" sequence-name="HOLDINGS_AUDIT_S"/>
+        <field-descriptor name="foreignKeyRef" column="FOREIGN_KEY_REF" jdbc-type="INTEGER"/>
+        <field-descriptor name="actor" column="ACTOR" jdbc-type="VARCHAR"/>
+        <field-descriptor name="updateDate" column="UPDATE_DATE" jdbc-type="TIMESTAMP"/>
+        <field-descriptor name="columnUpdated" column="COLUMN_UPDATED" jdbc-type="VARCHAR"/>
+        <field-descriptor name="columnValue" column="COLUMN_VALUE" jdbc-type="BLOB"/>
+        <field-descriptor name="objectId" column="OBJ_ID" jdbc-type="VARCHAR" index="true"/>
+        <field-descriptor name="versionNumber" column="VER_NBR" jdbc-type="BIGINT" locking="true" />
     </class-descriptor>
 
 </descriptor-repository>

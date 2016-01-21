@@ -942,6 +942,7 @@
         <field-descriptor name="bibId" column="BIB_ID" jdbc-type="VARCHAR" />
         <field-descriptor name="requestLevel" column="RQST_LVL" jdbc-type="VARCHAR" />
         <field-descriptor name="asrFlag" column="ASR_FLAG" jdbc-type="VARCHAR"   conversion="org.kuali.rice.core.framework.persistence.ojb.conversion.OjbCharBooleanConversion"/>
+        <field-descriptor name="requestNote" column="RQST_NOTE" jdbc-type="VARCHAR"/>
         <!-- <reference-descriptor name="olePatron" class-ref="org.kuali.ole.deliver.bo.OlePatronDocument" auto-retrieve="false" auto-update="none" auto-delete="none" proxy="false">
             <foreignkey field-ref="borrowerId" target-field-ref="olePatronId"/>
         </reference-descriptor>
@@ -1693,7 +1694,7 @@
         <field-descriptor name="noticeType" column="NTC_TYP" jdbc-type="VARCHAR" />
         <field-descriptor name="noticeSendType" column="NTC_SND_TYP" jdbc-type="VARCHAR" />
         <field-descriptor name="requestId" column="RQST_ID" jdbc-type="VARCHAR" />
-	   <field-descriptor name="noticeContent" column="NTC_CNTNT" jdbc-type="BLOB" />
+	   <field-descriptor name="noticeContent" column="NTC_CNTNT" jdbc-type="CLOB"  conversion="org.kuali.ole.deliver.util.OleOjbClobConversionUtil"/>
         <field-descriptor name="objectId" column="OBJ_ID" jdbc-type="VARCHAR" index="true"/>
         <field-descriptor name="versionNumber" column="VER_NBR" jdbc-type="BIGINT" locking="true" />
     </class-descriptor>
@@ -1784,14 +1785,15 @@
         </reference-descriptor>
     </class-descriptor>
 
-    <class-descriptor class="org.kuali.ole.deliver.bo.OLELoanIntransitRecordHistory" table="OLE_LOAN_INTRANSIT_HISTORY_T">
-        <field-descriptor name="id" column="ID" jdbc-type="VARCHAR" primarykey="true" autoincrement="true" sequence-name="OLE_LOAN_INTRANSIT_HISTORY_S" />
+    <class-descriptor class="org.kuali.ole.deliver.bo.OLEReturnHistoryRecord" table="OLE_RETURN_HISTORY_T">
+        <field-descriptor name="id" column="ID" jdbc-type="VARCHAR" primarykey="true" autoincrement="true" sequence-name="OLE_RETURN_HISTORY_S" />
         <field-descriptor name="itemBarcode" column="ITEM_BARCODE" jdbc-type="VARCHAR" />
         <field-descriptor name="itemUUID" column="ITEM_UUID" jdbc-type="VARCHAR" />
         <field-descriptor name="operator" column="OPERATOR" jdbc-type="VARCHAR" />
         <field-descriptor name="homeCirculationDesk" column="CIR_DESK_LOC" jdbc-type="VARCHAR" />
         <field-descriptor name="routeCirculationDesk" column="CIR_DESK_ROUTE_TO" jdbc-type="VARCHAR" />
         <field-descriptor name="returnedDateTime" column="ITEM_RETURNED_DT" jdbc-type="TIMESTAMP"/>
+        <field-descriptor name="returnedItemStatus" column="RETURNED_ITEM_STATUS" jdbc-type="VARCHAR"/>
         <field-descriptor name="objectId" column="OBJ_ID" jdbc-type="VARCHAR" index="true"/>
         <field-descriptor name="versionNumber" column="VER_NBR" jdbc-type="BIGINT" locking="true" />
     </class-descriptor>
@@ -1922,14 +1924,38 @@
         <field-descriptor name="noticeType" column="NOTICE_TYPE" jdbc-type="VARCHAR"/>
     </class-descriptor>
 
+    <class-descriptor class="org.kuali.ole.audit.ItemAudit" table="ITEM_AUDIT_T">
+        <field-descriptor name="auditId" column="AUDIT_ID" jdbc-type="INTEGER" primarykey="true" autoincrement="true" sequence-name="ITEM_AUDIT_S"/>
+        <field-descriptor name="foreignKeyRef" column="FOREIGN_KEY_REF" jdbc-type="INTEGER"/>
+        <field-descriptor name="actor" column="ACTOR" jdbc-type="VARCHAR"/>
+        <field-descriptor name="updateDate" column="UPDATE_DATE" jdbc-type="TIMESTAMP"/>
+        <field-descriptor name="columnUpdated" column="COLUMN_UPDATED" jdbc-type="VARCHAR"/>
+        <field-descriptor name="columnValue" column="COLUMN_VALUE" jdbc-type="BLOB"/>
+        <field-descriptor name="objectId" column="OBJ_ID" jdbc-type="VARCHAR" index="true"/>
+        <field-descriptor name="versionNumber" column="VER_NBR" jdbc-type="BIGINT" locking="true" />
+    </class-descriptor>
 
+    <class-descriptor class="org.kuali.ole.audit.BibAudit" table="BIB_AUDIT_T">
+        <field-descriptor name="auditId" column="AUDIT_ID" jdbc-type="INTEGER" primarykey="true" autoincrement="true" sequence-name="BIB_AUDIT_S"/>
+        <field-descriptor name="foreignKeyRef" column="FOREIGN_KEY_REF" jdbc-type="INTEGER"/>
+        <field-descriptor name="actor" column="ACTOR" jdbc-type="VARCHAR"/>
+        <field-descriptor name="updateDate" column="UPDATE_DATE" jdbc-type="TIMESTAMP"/>
+        <field-descriptor name="columnUpdated" column="COLUMN_UPDATED" jdbc-type="VARCHAR"/>
+        <field-descriptor name="columnValue" column="COLUMN_VALUE" jdbc-type="BLOB"/>
+        <field-descriptor name="objectId" column="OBJ_ID" jdbc-type="VARCHAR" index="true"/>
+        <field-descriptor name="versionNumber" column="VER_NBR" jdbc-type="BIGINT" locking="true" />
+    </class-descriptor>
 
-
-
-
-
-
-
+    <class-descriptor class="org.kuali.ole.audit.HoldingsAudit" table="HOLDINGS_AUDIT_T">
+        <field-descriptor name="auditId" column="AUDIT_ID" jdbc-type="INTEGER" primarykey="true" autoincrement="true" sequence-name="HOLDINGS_AUDIT_S"/>
+        <field-descriptor name="foreignKeyRef" column="FOREIGN_KEY_REF" jdbc-type="INTEGER"/>
+        <field-descriptor name="actor" column="ACTOR" jdbc-type="VARCHAR"/>
+        <field-descriptor name="updateDate" column="UPDATE_DATE" jdbc-type="TIMESTAMP"/>
+        <field-descriptor name="columnUpdated" column="COLUMN_UPDATED" jdbc-type="VARCHAR"/>
+        <field-descriptor name="columnValue" column="COLUMN_VALUE" jdbc-type="BLOB"/>
+        <field-descriptor name="objectId" column="OBJ_ID" jdbc-type="VARCHAR" index="true"/>
+        <field-descriptor name="versionNumber" column="VER_NBR" jdbc-type="BIGINT" locking="true" />
+    </class-descriptor>
 
 </descriptor-repository>
 

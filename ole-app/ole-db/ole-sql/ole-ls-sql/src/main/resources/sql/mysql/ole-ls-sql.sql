@@ -2154,6 +2154,7 @@ CREATE TABLE OLE_DLVR_RQST_T
         , BIB_ID VARCHAR(40)
         , ASR_FLAG VARCHAR(1)
         , HOLD_EXP_DATE DATETIME
+        , RQST_NOTE VARCHAR(4000)
     
     , CONSTRAINT OLE_DLVR_RQST_TP1 PRIMARY KEY(OLE_RQST_ID)
 
@@ -2163,47 +2164,47 @@ CREATE TABLE OLE_DLVR_RQST_T
 
 
     
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
                                     
 , INDEX flk1 (OLE_RQST_TYP_ID )
     
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
                                     
 , INDEX flk2 (PCKUP_LOC_ID )
     
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
                                     
 , INDEX flk3 (CIRC_LOC_ID )
     
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
                                     
 , INDEX flk4 (OLE_PTRN_ID )
     
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
                                     
 , INDEX flk5 (PROXY_PTRN_ID )
     
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
                                     
 , INDEX OLE_DLVR_RQST_TI1 (LOAN_TRAN_ID )
     
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
                                     
 , INDEX OLE_DLVR_RQST_TI2 (ITM_ID )
     
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
                                     
 , INDEX OLE_DLVR_RQST_TI3 (ITEM_UUID )
     
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
                                     
 , INDEX OLE_DLVR_RQST_TI4 (PTRN_Q_POS )
     
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
                                     
 , INDEX OLE_DLVR_RQST_TI5 (BIB_ID )
     
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
                                     
 , INDEX OLE_DLVR_RQST_TI6 (OLE_PTRN_BARCD )
 
@@ -2796,6 +2797,8 @@ CREATE TABLE OLE_E_RES_REC_T
         , GOKB_PROFILE VARCHAR(10)
         , GOKB_PACKAGE_STATUS VARCHAR(40)
         , GOKB_LAST_UPDATED_DATE DATETIME
+        , E_RES_RCP_ROLE_ID VARCHAR(40)
+        , E_RES_RCP_GROUP_ID VARCHAR(40)
     
     , CONSTRAINT OLE_E_RES_REC_TP1 PRIMARY KEY(E_RES_REC_ID)
 
@@ -2804,27 +2807,27 @@ CREATE TABLE OLE_E_RES_REC_T
 
 
     
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+
                                     
 , INDEX OLE_E_RES_REC_FK6 (PCKG_SCP_ID )
     
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+
                                     
 , INDEX OLE_E_RES_REC_FK7 (REQ_PRTY_ID )
     
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+
                                     
 , INDEX OLE_E_RES_REC_FK8 (PCKG_TYP_ID )
     
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+
                                     
 , INDEX OLE_E_RES_REC_FK9 (STAT_ID )
     
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+
                                     
 , INDEX OLE_E_RES_REC_FK10 (PYMT_TYP_ID )
     
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
+
                                     
 , INDEX OLE_E_RES_REC_FK11 (STAT_SRCH_CD_ID )
 
@@ -4293,7 +4296,7 @@ CREATE TABLE OLE_BAT_PRCS_PRFLE_CNST_T
 (
       OLE_USR_DEF_VAL_ID VARCHAR(40)
         , ATT_NM VARCHAR(100)
-        , ATT_VAL VARCHAR(100)
+        , ATT_VAL VARCHAR(500)
         , DATA_TYPE VARCHAR(20)
         , BAT_PRCS_PRF_ID VARCHAR(40) NOT NULL
         , DEF_VAL VARCHAR(20)
@@ -5603,12 +5606,12 @@ CREATE TABLE OLE_DLVR_LOAN_NOTICE_HSTRY_T
 
 
 # -----------------------------------------------------------------------
-# OLE_LOAN_INTRANSIT_HISTORY_T
+# OLE_RETURN_HISTORY_T
 # -----------------------------------------------------------------------
-drop table if exists OLE_LOAN_INTRANSIT_HISTORY_T
+drop table if exists OLE_RETURN_HISTORY_T
 /
 
-CREATE TABLE OLE_LOAN_INTRANSIT_HISTORY_T
+CREATE TABLE OLE_RETURN_HISTORY_T
 (
       ID VARCHAR(36)
         , ITEM_BARCODE VARCHAR(40)
@@ -5617,17 +5620,18 @@ CREATE TABLE OLE_LOAN_INTRANSIT_HISTORY_T
         , OPERATOR VARCHAR(36)
         , CIR_DESK_LOC VARCHAR(100)
         , CIR_DESK_ROUTE_TO VARCHAR(100)
+        , RETURNED_ITEM_STATUS VARCHAR(200)
         , VER_NBR DECIMAL(8)
         , OBJ_ID VARCHAR(36)
     
-    , CONSTRAINT OLE_LOAN_INTRANSIT_HISTORY_P1 PRIMARY KEY(ID)
+    , CONSTRAINT OLE_RETURN_HISTORY_TP1 PRIMARY KEY(ID)
 
 
 
 
 
     
-                                                                                                                                                                                                                                                                            
+                                                                                                                                                                                                                                                                                                
                                     
 , INDEX OLE_LOAN_INTRANSIT_HST_TI1 (ITEM_UUID )
 
@@ -6423,6 +6427,90 @@ CREATE TABLE OLE_NOTC_CNTNT_CONFIG_T
                                                                                                                                                                                                                                                                                                                     
                                     
 , INDEX NOTC_NM_INDEX (NOTC_NM (255))
+
+) ENGINE InnoDB CHARACTER SET utf8 COLLATE utf8_bin
+/
+
+
+# -----------------------------------------------------------------------
+# ITEM_AUDIT_T
+# -----------------------------------------------------------------------
+drop table if exists ITEM_AUDIT_T
+/
+
+CREATE TABLE ITEM_AUDIT_T
+(
+      AUDIT_ID INTEGER(10)
+        , FOREIGN_KEY_REF INTEGER(10)
+        , ACTOR VARCHAR(40)
+        , UPDATE_DATE DATETIME
+        , COLUMN_UPDATED VARCHAR(40)
+        , COLUMN_VALUE LONGBLOB
+        , OBJ_ID VARCHAR(36)
+        , VER_NBR INTEGER(8)
+    
+    , CONSTRAINT ITEM_AUDIT_TP1 PRIMARY KEY(AUDIT_ID)
+
+
+
+
+
+
+) ENGINE InnoDB CHARACTER SET utf8 COLLATE utf8_bin
+/
+
+
+# -----------------------------------------------------------------------
+# BIB_AUDIT_T
+# -----------------------------------------------------------------------
+drop table if exists BIB_AUDIT_T
+/
+
+CREATE TABLE BIB_AUDIT_T
+(
+      AUDIT_ID INTEGER(10)
+        , FOREIGN_KEY_REF INTEGER(10)
+        , ACTOR VARCHAR(40)
+        , UPDATE_DATE DATETIME
+        , COLUMN_UPDATED VARCHAR(40)
+        , COLUMN_VALUE LONGBLOB
+        , OBJ_ID VARCHAR(36)
+        , VER_NBR INTEGER(8)
+    
+    , CONSTRAINT BIB_AUDIT_TP1 PRIMARY KEY(AUDIT_ID)
+
+
+
+
+
+
+) ENGINE InnoDB CHARACTER SET utf8 COLLATE utf8_bin
+/
+
+
+# -----------------------------------------------------------------------
+# HOLDINGS_AUDIT_T
+# -----------------------------------------------------------------------
+drop table if exists HOLDINGS_AUDIT_T
+/
+
+CREATE TABLE HOLDINGS_AUDIT_T
+(
+      AUDIT_ID INTEGER(10)
+        , FOREIGN_KEY_REF INTEGER(10)
+        , ACTOR VARCHAR(40)
+        , UPDATE_DATE DATETIME
+        , COLUMN_UPDATED VARCHAR(40)
+        , COLUMN_VALUE LONGBLOB
+        , OBJ_ID VARCHAR(36)
+        , VER_NBR INTEGER(8)
+    
+    , CONSTRAINT HOLDINGS_AUDIT_TP1 PRIMARY KEY(AUDIT_ID)
+
+
+
+
+
 
 ) ENGINE InnoDB CHARACTER SET utf8 COLLATE utf8_bin
 /
@@ -8749,17 +8837,17 @@ ALTER TABLE OLE_DLVR_LOAN_NOTICE_HSTRY_S auto_increment = 1
 /
 
 # -----------------------------------------------------------------------
-# OLE_LOAN_INTRANSIT_HISTORY_S
+# OLE_RETURN_HISTORY_S
 # -----------------------------------------------------------------------
-drop table if exists OLE_LOAN_INTRANSIT_HISTORY_S
+drop table if exists OLE_RETURN_HISTORY_S
 /
 
-CREATE TABLE OLE_LOAN_INTRANSIT_HISTORY_S
+CREATE TABLE OLE_RETURN_HISTORY_S
 (
 	id bigint(19) not null auto_increment, primary key (id) 
 ) ENGINE MyISAM
 /
-ALTER TABLE OLE_LOAN_INTRANSIT_HISTORY_S auto_increment = 1
+ALTER TABLE OLE_RETURN_HISTORY_S auto_increment = 1
 /
 
 # -----------------------------------------------------------------------
@@ -9166,4 +9254,46 @@ CREATE TABLE OLE_DLVR_EMAIL_S
 ) ENGINE MyISAM
 /
 ALTER TABLE OLE_DLVR_EMAIL_S auto_increment = 1
+/
+
+# -----------------------------------------------------------------------
+# ITEM_AUDIT_S
+# -----------------------------------------------------------------------
+drop table if exists ITEM_AUDIT_S
+/
+
+CREATE TABLE ITEM_AUDIT_S
+(
+	id bigint(19) not null auto_increment, primary key (id) 
+) ENGINE MyISAM
+/
+ALTER TABLE ITEM_AUDIT_S auto_increment = 1
+/
+
+# -----------------------------------------------------------------------
+# BIB_AUDIT_S
+# -----------------------------------------------------------------------
+drop table if exists BIB_AUDIT_S
+/
+
+CREATE TABLE BIB_AUDIT_S
+(
+	id bigint(19) not null auto_increment, primary key (id) 
+) ENGINE MyISAM
+/
+ALTER TABLE BIB_AUDIT_S auto_increment = 1
+/
+
+# -----------------------------------------------------------------------
+# HOLDINGS_AUDIT_S
+# -----------------------------------------------------------------------
+drop table if exists HOLDINGS_AUDIT_S
+/
+
+CREATE TABLE HOLDINGS_AUDIT_S
+(
+	id bigint(19) not null auto_increment, primary key (id) 
+) ENGINE MyISAM
+/
+ALTER TABLE HOLDINGS_AUDIT_S auto_increment = 1
 /

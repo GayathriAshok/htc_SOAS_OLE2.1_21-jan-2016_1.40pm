@@ -188,7 +188,22 @@ public class WorkEInstanceOlemlEditor
                 if (eHoldings.getNote() != null && eHoldings.getNote().size() == 0) {
                     eHoldings.getNote().add(new Note());
                 }
-
+                if (eHoldings.getDonorInfo() != null && eHoldings.getDonorInfo().size() == 0) {
+                    eHoldings.getDonorInfo().add(new DonorInfo());
+                }
+                else {
+                    String modifiedValue = null;
+                    for (DonorInfo donorInformation : eHoldings.getDonorInfo()) {
+                        if (null != donorInformation.getDonorNote()) {
+                            modifiedValue = donorInformation.getDonorNote().replaceAll("&quot;","\"");
+                          }
+                            donorInformation.setDonorNote(modifiedValue);
+                        if (null != donorInformation.getDonorPublicDisplay()) {
+                                modifiedValue = donorInformation.getDonorPublicDisplay().replaceAll("&quot;","\"");
+                            donorInformation.setDonorPublicDisplay(modifiedValue);
+                        }
+                    }
+                }
                 if(eHoldings.getLink().size() == 0){
                     List<Link> links = new ArrayList<>();
                     Link link = new Link();
@@ -237,6 +252,21 @@ public class WorkEInstanceOlemlEditor
                 if (eHoldings.getNote() != null && eHoldings.getNote().size() == 0) {
                     eHoldings.getNote().add(new Note());
                 }
+                if (eHoldings.getDonorInfo() != null && eHoldings.getDonorInfo().size() == 0) {
+                    eHoldings.getDonorInfo().add(new DonorInfo());
+                }
+                else {
+                    for (DonorInfo donorInformation : eHoldings.getDonorInfo()) {
+                        if (null != donorInformation.getDonorNote()) {
+                            String modifiedValue = donorInformation.getDonorNote().replaceAll("\"","&quot;");
+                            donorInformation.setDonorNote(modifiedValue);
+                        }
+                        if (null != donorInformation.getDonorPublicDisplay()) {
+                            String modifiedValue = donorInformation.getDonorPublicDisplay().replaceAll("\"","&quot;");
+                            donorInformation.setDonorPublicDisplay(modifiedValue);
+                        }
+                    }
+                }
                 List<Link> links = new ArrayList<>();
                 Link link = new Link();
                 link.setText("");
@@ -276,6 +306,18 @@ public class WorkEInstanceOlemlEditor
         editorForm.setHeaderText("E-Holdings");
         if (workEInstanceOlemlForm.getTokenId() != null && !workEInstanceOlemlForm.getTokenId().isEmpty()) {
             editorForm.setTokenId(workEInstanceOlemlForm.getTokenId());
+        }
+        OleHoldings oleHoldings = workEInstanceOlemlForm.getSelectedEHoldings();
+        if(oleHoldings!=null){
+            if(oleHoldings.getCallNumber()  == null) {
+                CallNumber callNumber = new CallNumber();
+                String callNumberDefaultValue = getParameter(OLEConstants.APPL_ID_OLE, OLEConstants.DESC_NMSPC, OLEConstants
+                        .DESCRIBE_COMPONENT, OLEConstants.E_HOLDINGS_CALL_NUMBER_TYPE);
+                ShelvingScheme shelvingScheme = new ShelvingScheme();
+                shelvingScheme.setCodeValue(callNumberDefaultValue);
+                callNumber.setShelvingScheme(shelvingScheme);
+                oleHoldings.setCallNumber(callNumber);
+            }
         }
         return workEInstanceOlemlForm;
     }
@@ -332,6 +374,20 @@ public class WorkEInstanceOlemlEditor
         try {
             if (docId != null && docId.length() > 0) {
                 OleHoldings eHoldings = workEInstanceOlemlForm.getSelectedEHoldings();
+                List<DonorInfo> donorInfos = eHoldings.getDonorInfo();
+                if(donorInfos.size() > 0) {
+                    for (DonorInfo donorInformation : donorInfos) {
+                        if (null != donorInformation.getDonorNote()) {
+                            String modifiedValue = donorInformation.getDonorNote().replaceAll("\"","&quot;");
+                            donorInformation.setDonorNote(modifiedValue);
+                        }
+                        if (null != donorInformation.getDonorPublicDisplay()) {
+                            String modifiedValue = donorInformation.getDonorPublicDisplay().replaceAll("\"","&quot;");
+                            donorInformation.setDonorPublicDisplay(modifiedValue);
+                        }
+                    }
+                    eHoldings.setDonorInfo(donorInfos);
+                }
                 boolean dateFlag = getOleEResourceSearchService().validateDates(eHoldings);
                 if (dateFlag) {
                     getOleEResourceSearchService().getEResourcesFields(editorForm.geteResourceId(), eHoldings, workEInstanceOlemlForm);
@@ -931,12 +987,12 @@ public class WorkEInstanceOlemlEditor
             eHoldingsDoc.setType(DocType.EHOLDINGS.getCode());
             eHoldingsDoc.setFormat(DocFormat.OLEML.getCode());
             String canUpdateStaffOnlyFlag = "false";
-            if (editorForm.getStaffOnlyFlagInGlobalEdit() != null && editorForm.getStaffOnlyFlagInGlobalEdit().equalsIgnoreCase("Y")) {
+            if (editorForm.isStaffOnlyFlagInGlobalEdit()) {
                 canUpdateStaffOnlyFlag = "true";
                 editorForm.setStaffOnlyFlagForHoldings(true);
                 eHoldingsDoc.setStaffOnly(editorForm.isStaffOnlyFlagForHoldings());
             }
-            else if (editorForm.getStaffOnlyFlagInGlobalEdit() != null && editorForm.getStaffOnlyFlagInGlobalEdit().equalsIgnoreCase("N")) {
+            else if (!editorForm.isStaffOnlyFlagInGlobalEdit()) {
                 canUpdateStaffOnlyFlag = "true";
                 editorForm.setStaffOnlyFlagForHoldings(false);
                 eHoldingsDoc.setStaffOnly(editorForm.isStaffOnlyFlagForHoldings());

@@ -1,7 +1,12 @@
 package org.kuali.ole.docstore.engine.service.storage.rdbms;
 
+import org.apache.commons.lang.SerializationUtils;
 import org.apache.commons.lang.StringUtils;
+import org.json.simple.JSONObject;
 import org.kuali.ole.DocumentUniqueIDPrefix;
+import org.kuali.ole.audit.Audit;
+import org.kuali.ole.audit.ItemAudit;
+import org.kuali.ole.audit.OleAuditManager;
 import org.kuali.ole.docstore.DocStoreConstants;
 import org.kuali.ole.docstore.common.constants.DocstoreConstants;
 import org.kuali.ole.docstore.common.document.Bib;
@@ -34,6 +39,7 @@ import org.kuali.ole.docstore.engine.service.DocstoreDateTimeUtil;
 import org.kuali.ole.docstore.engine.service.storage.rdbms.pojo.*;
 import org.kuali.ole.docstore.engine.service.storage.rdbms.pojo.ItemClaimsReturnedRecord;
 import org.kuali.ole.docstore.engine.service.storage.rdbms.pojo.ItemDamagedRecord;
+import org.kuali.ole.utility.OleHttpRestClient;
 import org.kuali.rice.core.api.CoreApiServiceLocator;
 import org.kuali.rice.core.api.config.property.ConfigContext;
 import org.kuali.rice.core.api.datetime.DateTimeService;
@@ -152,6 +158,7 @@ public class RdbmsItemDocumentManager extends RdbmsHoldingsDocumentManager imple
         Map parentCriteria1 = new HashMap();
         parentCriteria1.put("itemId", DocumentUniqueIDPrefix.getDocumentId(itemDocument.getId()));
         ItemRecord itemRecord = getBusinessObjectService().findByPrimaryKey(ItemRecord.class, parentCriteria1);
+        ItemRecord oldItemRecord = (ItemRecord) SerializationUtils.clone(itemRecord);
         if(itemRecord ==  null) {
             DocstoreException docstoreException = new DocstoreValidationException(DocstoreResources.ITEM_ID_NOT_FOUND, DocstoreResources.ITEM_ID_NOT_FOUND);
             docstoreException.addErrorParams("itemId", itemDocument.getId());
@@ -166,6 +173,33 @@ public class RdbmsItemDocumentManager extends RdbmsHoldingsDocumentManager imple
         setItemProperties(itemRecord, item);
         String content =  itemOlemlRecordProcessor.toXML(item);
         itemDocument.setContent(content);
+        try {
+            oldItemRecord = processItemRecordForAudit(oldItemRecord);
+            ItemRecord modifiedItemRecord = (ItemRecord) SerializationUtils.clone(itemRecord);
+            modifiedItemRecord = processItemRecordForAudit(modifiedItemRecord);
+            //OleAuditManager.getInstance().audit(ItemAudit.class,oldItemRecord,modifiedItemRecord,itemRecord.getItemId(),"ole");
+            List<Audit> itemAuditedFields = OleAuditManager.getInstance().audit(ItemAudit.class, oldItemRecord, modifiedItemRecord, itemRecord.getItemId(), "ole");
+
+            for (Iterator<Audit> iterator = itemAuditedFields.iterator(); iterator.hasNext(); ) {
+                Audit auditedField = iterator.next();
+                if(auditedField.getColumnUpdated().equalsIgnoreCase("barcode")){
+                    OleHttpRestClient oleHttpRestClient = new OleHttpRestClient();
+                    String olefsUrl = ConfigContext.getCurrentContextConfig().getProperty("ole.fs.url.base");
+                    String url = olefsUrl + "/rest/oledsdata/item/update/barcode";
+                    JSONObject request = new JSONObject();
+                    request.put("oldBarcode", oldItemRecord.getBarCode());
+                    request.put("newBarcode", itemRecord.getBarCode());
+                    oleHttpRestClient.sendPostRequest(url,request.toString(),"json");
+
+                }
+            }
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (InstantiationException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -207,6 +241,7 @@ public class RdbmsItemDocumentManager extends RdbmsHoldingsDocumentManager imple
         item.setEnumeration(itemRecord.getEnumeration());
         item.setChronology(itemRecord.getChronology());
         item.setNumberOfPieces(itemRecord.getNumberOfPieces());
+        item.setDescriptionOfPieces(itemRecord.getDescriptionOfPieces());
         item.setCheckinNote(itemRecord.getCheckInNote());
         item.setLocation(getLocationDetails(itemRecord.getLocation(), itemRecord.getLocationLevel()));
         if (itemRecord.getFormerIdentifierRecords() != null) {
@@ -254,7 +289,7 @@ public class RdbmsItemDocumentManager extends RdbmsHoldingsDocumentManager imple
             item.setNote(notes);
         }
         List<DonorInfo> donorInfoList = new ArrayList<DonorInfo>();
-        if (itemRecord.getDonorList() != null) {
+        if (CollectionUtils.isNotEmpty(itemRecord.getDonorList())) {
             for (OLEItemDonorRecord oleItemDonorRecord : itemRecord.getDonorList()) {
                 DonorInfo donorInfo = new DonorInfo();
                 donorInfo.setDonorCode(oleItemDonorRecord.getDonorCode());
@@ -262,8 +297,10 @@ public class RdbmsItemDocumentManager extends RdbmsHoldingsDocumentManager imple
                 donorInfo.setDonorNote(oleItemDonorRecord.getDonorNote());
                 donorInfoList.add(donorInfo);
             }
-            item.setDonorInfo(donorInfoList);
+        }else {
+            donorInfoList.add(new DonorInfo());
         }
+        item.setDonorInfo(donorInfoList);
 
         List<MissingPieceItemRecord> missingPieceItemRecordList = new ArrayList<>();
 
@@ -759,6 +796,15 @@ public class RdbmsItemDocumentManager extends RdbmsHoldingsDocumentManager imple
             ItemTypeRecord itemTypeRecord = saveItemTypeRecord(item.getItemType());
             itemRecord.setItemTypeId(itemTypeRecord == null ? null : itemTypeRecord.getItemTypeId());
             itemRecord.setItemTypeRecord(itemTypeRecord);
+        }else{
+            String itemTypeCode = getParameter(APPL_ID_OLE, DESC_NMSPC, DESCRIBE_COMPONENT, DEFAULT_ITEM_TYPE_CODE);
+            if (StringUtils.isNotBlank(itemTypeCode)) {
+                ItemType itemType = new ItemType();
+                itemType.setCodeValue(itemTypeCode.toUpperCase());
+                ItemTypeRecord itemTypeRecord = saveItemTypeRecord(itemType);
+                itemRecord.setItemTypeId(itemTypeRecord == null ? null : itemTypeRecord.getItemTypeId());
+                itemRecord.setItemTypeRecord(itemTypeRecord);
+            }
         }
         if (item.getTemporaryItemType() != null) {
             ItemTypeRecord tempItemTypeRecord = saveItemTypeRecord(item.getTemporaryItemType());
@@ -770,6 +816,7 @@ public class RdbmsItemDocumentManager extends RdbmsHoldingsDocumentManager imple
         itemRecord.setEnumeration(item.getEnumeration());
 
         itemRecord.setNumberOfPieces(item.getNumberOfPieces());
+        itemRecord.setDescriptionOfPieces(item.getDescriptionOfPieces());
         itemRecord.setPurchaseOrderItemLineId(item.getPurchaseOrderLineItemIdentifier());
         itemRecord.setVendorLineItemId(item.getVendorLineItemIdentifier());
         itemRecord.setFund(item.getFund());
@@ -938,7 +985,7 @@ public class RdbmsItemDocumentManager extends RdbmsHoldingsDocumentManager imple
             saveCheckInLocationRecord(item.getNumberOfCirculations().getCheckInLocation(), itemRecord.getItemId());
         }
         if (item.getDonorInfo() != null && item.getDonorInfo().size() >= 0) {
-            saveDonorList(item.getDonorInfo(), itemRecord.getItemId());
+            itemRecord.setDonorList(saveItemDonorList(item.getDonorInfo(), itemRecord.getItemId()));
         }
         itemRecord.setNumberOfRenew(item.getNumberOfRenew());
         getBusinessObjectService().save(itemRecord);
@@ -1358,35 +1405,41 @@ public class RdbmsItemDocumentManager extends RdbmsHoldingsDocumentManager imple
 
     }
 
-    protected void saveDonorList(List<DonorInfo> donorslist, String itemId) {
+    private List<OLEItemDonorRecord> saveItemDonorList(List<DonorInfo> donorslist, String itemId) {
         Map map = new HashMap();
         map.put("itemId", itemId);
         List<OLEItemDonorRecord> itemDonorRecordList = (List<OLEItemDonorRecord>) getBusinessObjectService().findMatching(OLEItemDonorRecord.class, map);
         if(itemDonorRecordList!=null && itemDonorRecordList.size() >= 0) {
             getBusinessObjectService().delete(itemDonorRecordList);
+            itemDonorRecordList.clear();
         }
         if (donorslist.size() > 0) {
-            List<OLEItemDonorRecord> oleItemDonorRecords = new ArrayList<OLEItemDonorRecord>();
             for (int i = 0; i < donorslist.size(); i++) {
                 DonorInfo donorinfo = donorslist.get(i);
-                if (donorinfo.getDonorCode() != null ) {
+                if (StringUtils.isNotBlank(donorinfo.getDonorCode()) || StringUtils.isNotBlank(donorinfo.getDonorNote()) || StringUtils.isNotBlank(donorinfo.getDonorPublicDisplay())) {
                     OLEItemDonorRecord oleItemDonorRecord = new OLEItemDonorRecord();
                     oleItemDonorRecord.setDonorPublicDisplay(donorinfo.getDonorPublicDisplay());
                     oleItemDonorRecord.setDonorCode(donorinfo.getDonorCode());
                     oleItemDonorRecord.setDonorNote(donorinfo.getDonorNote());
                     oleItemDonorRecord.setItemId(itemId);
-                    oleItemDonorRecords.add(oleItemDonorRecord);
+                    itemDonorRecordList.add(oleItemDonorRecord);
                 }
             }
-            if (oleItemDonorRecords.size() > 0) {
-                getBusinessObjectService().save(oleItemDonorRecords);
+            if (itemDonorRecordList.size() > 0) {
+                getBusinessObjectService().save(itemDonorRecordList);
             }
         }
+        return itemDonorRecordList;
     }
 
     protected ItemTypeRecord saveItemTypeRecord(ItemType itemType) {
         Map map = new HashMap();
-        map.put("code", itemType.getCodeValue());
+        if(StringUtils.isNotBlank(itemType.getCodeValue())){
+            map.put("code", itemType.getCodeValue());
+        }else{
+            String itemTypeCode = getParameter(APPL_ID_OLE, DESC_NMSPC, DESCRIBE_COMPONENT, DEFAULT_ITEM_TYPE_CODE);
+            map.put("code", itemTypeCode);
+        }
         List<ItemTypeRecord> itemTypeRecords = (List<ItemTypeRecord>) getBusinessObjectService().findMatching(ItemTypeRecord.class, map);
         if (itemTypeRecords.size() == 0) {
             if (itemType.getCodeValue() != null && !"".equals(itemType.getCodeValue())) {
@@ -1727,5 +1780,17 @@ public class RdbmsItemDocumentManager extends RdbmsHoldingsDocumentManager imple
             }
             checkUuidsToDelete(itemId, 1);
         }
+    }
+
+    private ItemRecord processItemRecordForAudit(ItemRecord itemRecord){
+        itemRecord.setFormerIdentifierRecords(null);
+        itemRecord.setItemNoteRecords(null);
+        itemRecord.setLocationsCheckinCountRecords(null);
+        itemRecord.setDonorList(null);
+        itemRecord.setItemStatisticalSearchRecords(null);
+        itemRecord.setItemClaimsReturnedRecords(null);
+        itemRecord.setItemDamagedRecords(null);
+        itemRecord.setMissingPieceItemRecordList(null);
+        return itemRecord;
     }
 }

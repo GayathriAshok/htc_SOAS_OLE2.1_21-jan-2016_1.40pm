@@ -836,6 +836,7 @@ public class OlePatronMaintenanceDocumentController extends MaintenanceDocumentC
             }
 
         }
+
         if(!olePatronHelperService.validatePatron(newOlePatronDocument)) {
             return getUIFModelAndView(form);
         }
@@ -1146,6 +1147,13 @@ public class OlePatronMaintenanceDocumentController extends MaintenanceDocumentC
             model = super.route(mainForm, result, request, response);
         } catch (Exception e) {
             return model;
+        }
+
+        if((newOlePatronDocument.getOlePatronId() != null) && (newOlePatronDocument.isBarcodeEditable())){
+            String oldBarcode = ((OlePatronDocument)document.getOldMaintainableObject().getDataObject()).getBarcode();
+            PatronBarcodeUpdateHandler patronBarcodeUpdateHandler = new PatronBarcodeUpdateHandler();
+            patronBarcodeUpdateHandler.updatePatronBarcode(newOlePatronDocument,oldBarcode);
+
         }
         return model;
     }

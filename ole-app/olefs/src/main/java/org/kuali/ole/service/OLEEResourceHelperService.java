@@ -6,6 +6,7 @@ import org.apache.log4j.Logger;
 import org.kuali.ole.OLEConstants;
 import org.kuali.ole.OLEParameterConstants;
 import org.kuali.ole.alert.bo.ActionListAlertBo;
+import org.kuali.ole.alert.service.impl.AlertServiceImpl;
 import org.kuali.ole.batch.bo.OLEBatchProcessBibDataMappingNew;
 import org.kuali.ole.batch.bo.OLEBatchProcessProfileBo;
 import org.kuali.ole.batch.bo.OLEBatchProcessProfileDataMappingOptionsBo;
@@ -99,6 +100,7 @@ public class OLEEResourceHelperService {
     private BusinessObjectService businessObjectService;
     private DocumentService documentService;
     private DocumentDao documentDao;
+    private AlertServiceImpl alertService = new AlertServiceImpl();
 
     private GokbRdbmsService gokbRdbmsService;
     private GokbLocalService gokbLocalService;
@@ -1986,6 +1988,7 @@ public class OLEEResourceHelperService {
         DocumentRouteHeaderValue documentBo = KEWServiceLocator.getRouteHeaderService().getRouteHeader(maintenanceDocument.getDocumentNumber());
         documentBo.setDocRouteStatus("S");
         KEWServiceLocator.getRouteHeaderService().saveRouteHeader(documentBo);
+        String previousStatus = oleeResourceAccess.getAccessStatus();
         OLEAccessActivationConfiguration oleAccessActivationConfiguration = getBusinessObjectService().findBySinglePrimaryKey(OLEAccessActivationConfiguration.class, oleeResourceAccess.getWorkflowId());
         if (oleAccessActivationConfiguration != null) {
             oleeResourceAccess.setAccessStatus(oleAccessActivationConfiguration.getWorkflowCompletionStatus());
@@ -2007,7 +2010,7 @@ public class OLEEResourceHelperService {
         for (ActionRequestValue actionRequestValue : actionRequestValueList) {
             if (actionRequestValue.getPrincipalId().equalsIgnoreCase(GlobalVariables.getUserSession().getPrincipalId())) {
                 actionTakenValue = new ActionTakenValue();
-                actionTakenValue.setAnnotation("Approved status : " + oleeResourceAccess.getAccessStatus());
+                actionTakenValue.setAnnotation("Approved Status : " + previousStatus);
                 actionTakenValue.setActionDate(new Timestamp(System.currentTimeMillis()));
                 actionTakenValue.setActionTaken("A");
                 actionTakenValue.setDocumentId(actionRequestValue.getDocumentId());
@@ -2338,4 +2341,68 @@ public class OLEEResourceHelperService {
         }
         return oleeResourceEventLogs;
     }
+
+    public void getLinkedPOs(List<OLEEResourcePO> oleeResourcePOList, OLEEResourceRecordDocument oleeResourceRecordDocument) {
+        Map map = new HashMap();
+        map.put(OLEConstants.OLEEResourceRecord.ERESOURCE_IDENTIFIER,oleeResourceRecordDocument.getOleERSIdentifier());
+        List<OleCopy> copies = (List<OleCopy>) getBusinessObjectService().findMatching(OleCopy.class, map);
+        for (OleCopy copy : copies) {
+            if (copy.getPoItemId() != null && StringUtils.isBlank(copy.getInstanceId())) {
+                oleeResourceSearchService.getPOFromCopy(oleeResourceRecordDocument.getTitle(), copy, oleeResourcePOList);
+            }
+        }
+    }
+
+    public void setRenewalRecipient(OLEEResourceRecordDocument oleeResourceRecordDocument) {
+        if(org.apache.commons.lang3.StringUtils.isNotBlank(oleeResourceRecordDocument.getRecipientId())) {
+            oleeResourceRecordDocument.setRecipientSelector(OLEConstants.SELECTOR_PERSON);
+            oleeResourceRecordDocument.setRecipientName(alertService.getName(oleeResourceRecordDocument.getRecipientId()));
+        } else if(org.apache.commons.lang3.StringUtils.isNotBlank(oleeResourceRecordDocument.getRecipientRoleId())) {
+            oleeResourceRecordDocument.setRecipientSelector(OLEConstants.SELECTOR_ROLE);
+            oleeResourceRecordDocument.setRecipientRoleName(alertService.getRoleName(oleeResourceRecordDocument.getRecipientRoleId()));
+        } else if(org.apache.commons.lang3.StringUtils.isNotBlank(oleeResourceRecordDocument.getRecipientGroupId())) {
+            oleeResourceRecordDocument.setRecipientSelector(OLEConstants.SELECTOR_GROUP);
+            oleeResourceRecordDocument.setRecipientGroupName(alertService.getGroupName(oleeResourceRecordDocument.getRecipientGroupId()));
+        }
+    }
+
+    public boolean validateRole(OLEEResourceRecordDocument oleeResourceRecordDocument) {
+        if(StringUtils.isBlank(oleeResourceRecordDocument.getRecipientRoleName())) {
+            GlobalVariables.getMessageMap().putErrorForSectionId(OLEConstants.SUBSCRIPTION_RENEWAL, OLEConstants.ERROR_EMPTY_ROLE);
+            return false;
+        }
+        oleeResourceRecordDocument.setRecipientRoleId(alertService.getRoleId((oleeResourceRecordDocument.getRecipientRoleName())));
+        if(StringUtils.isBlank(oleeResourceRecordDocument.getRecipientRoleId())) {
+            GlobalVariables.getMessageMap().putErrorForSectionId(OLEConstants.SUBSCRIPTION_RENEWAL,OLEConstants.ERROR_INVALID_NAME);
+            return false;
+        }
+        return true;
+    }
+
+    public boolean validateGroup(OLEEResourceRecordDocument oleeResourceRecordDocument) {
+        if(StringUtils.isBlank(oleeResourceRecordDocument.getRecipientGroupName())) {
+            GlobalVariables.getMessageMap().putErrorForSectionId(OLEConstants.SUBSCRIPTION_RENEWAL, OLEConstants.ERROR_EMPTY_GROUP);
+            return false;
+        }
+        oleeResourceRecordDocument.setRecipientGroupId(alertService.getGroupId(oleeResourceRecordDocument.getRecipientGroupName()));
+        if(StringUtils.isBlank(oleeResourceRecordDocument.getRecipientGroupId())) {
+            GlobalVariables.getMessageMap().putErrorForSectionId(OLEConstants.SUBSCRIPTION_RENEWAL, OLEConstants.ERROR_INVALID_GROUP_NAME);
+            return false;
+        }
+        return true;
+    }
+
+    public boolean validatePerson(OLEEResourceRecordDocument oleeResourceRecordDocument) {
+        if(StringUtils.isBlank(oleeResourceRecordDocument.getRecipientName())) {
+            GlobalVariables.getMessageMap().putErrorForSectionId(OLEConstants.SUBSCRIPTION_RENEWAL, OLEConstants.ERROR_EMPTY_PERSON);
+            return false;
+        }
+        oleeResourceRecordDocument.setRecipientId(alertService.getPersonId(oleeResourceRecordDocument.getRecipientName()));
+        if(StringUtils.isBlank(oleeResourceRecordDocument.getRecipientId())) {
+            GlobalVariables.getMessageMap().putErrorForSectionId(OLEConstants.SUBSCRIPTION_RENEWAL, OLEConstants.ERROR_INVALID_PERSON_NAME);
+            return false;
+        }
+        return true;
+    }
+
 }

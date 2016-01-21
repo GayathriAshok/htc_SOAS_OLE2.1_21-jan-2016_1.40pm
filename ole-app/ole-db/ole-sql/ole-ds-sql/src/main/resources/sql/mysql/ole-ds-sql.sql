@@ -1,4 +1,3 @@
-
 # -----------------------------------------------------------------------
 # OLE_DS_ACCESS_LOCATION_CODE_T
 # -----------------------------------------------------------------------
@@ -449,6 +448,7 @@ CREATE TABLE OLE_DS_HOLDINGS_T
         , INITIAL_SBRCPTN_START_DT DATETIME
         , CURRENT_SBRCPTN_START_DT DATETIME
         , CURRENT_SBRCPTN_END_DT DATETIME
+        , CANCELLATION_CANDIDATE CHAR(1)
         , CANCELLATION_DECISION_DT DATETIME
         , CANCELLATION_EFFECTIVE_DT DATETIME
         , CANCELLATION_REASON VARCHAR(40)
@@ -612,6 +612,7 @@ CREATE TABLE OLE_DS_ITEM_T
         , DATE_UPDATED DATETIME
         , UNIQUE_ID_PREFIX VARCHAR(10)
         , ORG_DUE_DATE_TIME DATETIME
+        , DESC_OF_PIECES VARCHAR(400)
     
     , CONSTRAINT OLE_DS_ITEM_TP1 PRIMARY KEY(ITEM_ID)
 
@@ -620,11 +621,11 @@ CREATE TABLE OLE_DS_ITEM_T
 
 
     
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
                                     
 , INDEX OLE_DS_ITEM_TI1 (BARCODE )
     
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
                                     
 , INDEX OLE_DS_ITEM_TI2 (HOLDINGS_ID )
 

@@ -2,7 +2,9 @@ package org.kuali.ole.deliver.controller;
 
 import org.apache.log4j.Logger;
 import org.kuali.ole.OLEConstants;
+import org.kuali.ole.OLEPropertyConstants;
 import org.kuali.ole.deliver.controller.checkout.CheckoutUIController;
+import org.kuali.ole.deliver.form.CheckinForm;
 import org.kuali.ole.deliver.form.CircForm;
 import org.kuali.ole.deliver.keyvalue.CirculationDeskChangeKeyValue;
 import org.kuali.ole.deliver.service.CircDeskLocationResolver;
@@ -11,6 +13,8 @@ import org.kuali.ole.deliver.util.ErrorMessage;
 import org.kuali.rice.core.api.config.property.ConfigContext;
 import org.kuali.rice.core.api.util.KeyValue;
 import org.kuali.rice.krad.exception.DocumentAuthorizationException;
+import org.kuali.rice.krad.uif.UifConstants;
+import org.kuali.rice.krad.uif.UifParameters;
 import org.kuali.rice.krad.util.GlobalVariables;
 import org.kuali.rice.krad.web.controller.UifControllerBase;
 import org.kuali.rice.krad.web.form.UifFormBase;
@@ -24,6 +28,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 /**
  * Created by hemalathas on 6/21/15.
@@ -83,6 +88,18 @@ public class CircBaseController extends OLEUifControllerBase{
     }
 
 
+    @RequestMapping(params = "methodToCall=goToReturn")
+    public ModelAndView goToReturn(@ModelAttribute("KualiForm") UifFormBase form, BindingResult result,
+                                   HttpServletRequest request, HttpServletResponse response){
+
+        String baseUrl = ConfigContext.getCurrentContextConfig().getProperty(OLEPropertyConstants.OLE_URL_BASE);
+        String url = baseUrl + "/portal.do?channelTitle=Return&channelUrl=" + baseUrl + "/ole-kr-krad/checkincontroller?viewId=checkinView&methodToCall=start";
+        Properties props = new Properties();
+        props.put(UifParameters.METHOD_TO_CALL, UifConstants.MethodToCallNames.REFRESH);
+        return performRedirect(form, url,props);
+    }
+
+
     @RequestMapping(params = "methodToCall=resetUI")
     public ModelAndView resetUI(@ModelAttribute("KualiForm") UifFormBase form, BindingResult result,
                                 HttpServletRequest request, HttpServletResponse response) {
@@ -130,6 +147,12 @@ public class CircBaseController extends OLEUifControllerBase{
         circForm.setItemValidationDone(false);
         circForm.setCustomDueDateMap(null);
         circForm.setCustomDueDateTime(null);
+        circForm.setMissingPieceMatchCheck("");
+        circForm.setMissingPieces("");
+        circForm.setMismatchedMissingPieceNote("");
+        circForm.setRecordNoteForMissingPiece(false);
+        circForm.setRecordNoteForDamagedItem(false);
+        circForm.setRecordNoteForClaimsReturn(false);
     }
 
     private void setPrincipalInfo(CircForm circForm) {
