@@ -171,6 +171,13 @@ public abstract class CheckinBaseController extends CircUtilController {
         return preValidationForClaimsReturned(itemRecord, oleForm);
     }
 
+    public DroolsResponse preValidationForLost(ItemRecord itemRecord, OLEForm oleForm) {
+        DroolsResponse droolsResponse;
+        droolsResponse = checkForLostItem(itemRecord);
+        if (droolsResponse != null) return droolsResponse;
+        OleLoanDocument oleLoanDocument = getOleLoanDocument(oleForm);
+        return processCheckinAfterPreValidation(itemRecord, oleForm, oleLoanDocument);
+    }
     public DroolsResponse preValidationForClaimsReturned(ItemRecord itemRecord, OLEForm oleForm) {
         DroolsResponse droolsResponse;
         droolsResponse = checkForClaimsReturnedNote(itemRecord);
@@ -190,14 +197,13 @@ public abstract class CheckinBaseController extends CircUtilController {
         DroolsResponse droolsResponse;
         droolsResponse = processIfCheckinRequestExist(itemRecord, oleForm);
         if (droolsResponse != null) return droolsResponse;
-        OleLoanDocument oleLoanDocument = getOleLoanDocument(oleForm);
-        return processCheckinAfterPreValidation(itemRecord, oleForm, oleLoanDocument);
+        return preValidationForLost(itemRecord, oleForm);
     }
 
 
     public DroolsResponse processCheckinAfterPreValidation(ItemRecord itemRecord, OLEForm oleForm, OleLoanDocument loanDocument) {
         DroolsResponse droolsResponse;
-
+        String billNumber="";
         OleCirculationDesk oleCirculationDesk = getCircDeskLocationResolver().getOleCirculationDesk(getSelectedCirculationDesk(oleForm));
         OleItemRecordForCirc oleItemRecordForCirc = ItemInfoUtil.getInstance().getOleItemRecordForCirc(itemRecord, oleCirculationDesk);
         oleItemRecordForCirc.setOperatorCircLocation(oleCirculationDesk);
@@ -243,7 +249,7 @@ public abstract class CheckinBaseController extends CircUtilController {
                 oleItemRecordForCirc.setItemRecord((ItemRecord)getDroolsExchange(oleForm).getContext().get("itemRecord"));
                 updateItemStatusAndCircCount(oleItemRecordForCirc);
                 emailToPatronForOnHoldStatus();
-                generateBillPayment(getSelectedCirculationDesk(oleForm), loanDocument, processDateAndTimeForAlterDueDate(getCustomDueDateMap(oleForm),getCustomDueDateTime(oleForm)), loanDocument.getLoanDueDate());
+                billNumber = generateBillPayment(getSelectedCirculationDesk(oleForm), loanDocument, processDateAndTimeForAlterDueDate(getCustomDueDateMap(oleForm),getCustomDueDateTime(oleForm)), loanDocument.getLoanDueDate());
             } catch (Exception e) {
                 LOG.error(e.getStackTrace());
             }
@@ -269,9 +275,11 @@ public abstract class CheckinBaseController extends CircUtilController {
             } else {
                 if (!ruleMatched(droolsResponse)) {
                     droolsResponse.getErrorMessage().setErrorMessage("No checkin rule found!");
-                    droolsResponse.getErrorMessage().setErrorCode(DroolsConstants.GENERAL_MESSAGE_FLAG);
-                    return droolsResponse;
+                }else{
+                   droolsResponse.getErrorMessage().getErrorMessage();
                 }
+                droolsResponse.getErrorMessage().setErrorCode(DroolsConstants.GENERAL_MESSAGE_FLAG);
+                return droolsResponse;
             }
         }
 
@@ -279,7 +287,7 @@ public abstract class CheckinBaseController extends CircUtilController {
 
         handleRecentlyReturnedRecord(oleItemRecordForCirc, updateRecentlyReturnedTable);
 
-        updateCheckedInItemList(oleForm, itemRecord.getCheckInNote(), oleItemRecordForCirc, oleItemSearch, olePatronDocument);
+        updateCheckedInItemList(oleForm, itemRecord.getCheckInNote(), oleItemRecordForCirc, oleItemSearch, olePatronDocument, billNumber);
 
         handleOnHoldRequestIfExists(oleItemRecordForCirc);
 
@@ -299,7 +307,11 @@ public abstract class CheckinBaseController extends CircUtilController {
         if (null != prioritizedRequest) {
             DroolsResponse droolsResponse = new DroolsResponse();
             droolsResponse.addErrorMessageCode(DroolsConstants.CHECKIN_REQUEST_EXITS_FOR_THIS_ITEM);
-            droolsResponse.addErrorMessage("Request already exist for this item. <br/><br/> Do you want to checkin this item?.");
+            String errorMessage = "Request already exist for this item. <br/><br/> Do you want to checkin this item?.";
+            if(itemRecord.getItemStatusRecord()!=null && itemRecord.getItemStatusRecord().getCode().equalsIgnoreCase(OLEConstants.ITEM_STATUS_LOST)) {
+                errorMessage = errorMessage + "\n Item is marked as lost and/or replacement fee has been billed.Item cannot be resolved until this situation is resolved.";
+            }
+            droolsResponse.addErrorMessage(errorMessage);
             return droolsResponse;
         }
         return null;
@@ -391,6 +403,15 @@ public abstract class CheckinBaseController extends CircUtilController {
             DroolsResponse droolsResponse = new DroolsResponse();
             droolsResponse.addErrorMessageCode(DroolsConstants.ITEM_DAMAGED);
             droolsResponse.addErrorMessage("Item is Damaged. Do you want to continue?" + OLEConstants.BREAK + "Damaged Note: " + itemRecord.getDamagedItemNote());
+            return droolsResponse;
+        }
+        return null;
+    }
+    private DroolsResponse checkForLostItem(ItemRecord itemRecord) {
+        int status=Integer.parseInt(itemRecord.getItemStatusId());
+        if(itemRecord.getItemStatusRecord()!=null && itemRecord.getItemStatusRecord().getCode().equalsIgnoreCase(OLEConstants.ITEM_STATUS_LOST)){
+            DroolsResponse droolsResponse = new DroolsResponse();
+            droolsResponse.addErrorMessage("Item is marked as lost and/or replacement fee has been billed.Item cannot be resolved until this situation is resolved.");
             return droolsResponse;
         }
         return null;
@@ -609,7 +630,7 @@ public abstract class CheckinBaseController extends CircUtilController {
         return false;
     }
 
-    private void updateCheckedInItemList(OLEForm oleForm, String checkinNote, OleItemRecordForCirc oleItemRecordForCirc, OleItemSearch oleItemSearch, OlePatronDocument olePatronDocument) {
+    private void updateCheckedInItemList(OLEForm oleForm, String checkinNote, OleItemRecordForCirc oleItemRecordForCirc, OleItemSearch oleItemSearch, OlePatronDocument olePatronDocument, String billNumber) {
         CheckedInItem checkedInItem = new CheckedInItem();
         SimpleDateFormat dateFormat = new SimpleDateFormat(RiceConstants.SIMPLE_DATE_FORMAT_FOR_DATE + " " + RiceConstants.SIMPLE_DATE_FORMAT_FOR_TIME);
         checkedInItem.setCheckinNote(checkinNote);
@@ -639,7 +660,9 @@ public abstract class CheckinBaseController extends CircUtilController {
         checkedInItem.setPatronId((olePatronDocument != null) ? olePatronDocument.getOlePatronId() : "");
         checkedInItem.setPatronBarcode((olePatronDocument != null) ? olePatronDocument.getBarcode() : "");
         checkedInItem.setBorrowerType((olePatronDocument != null) ? olePatronDocument.getBorrowerTypeName() : "");
-        checkedInItem.setBillName(getBillName(olePatronDocument, oleItemSearch.getItemBarCode()));
+        if(StringUtils.isNotBlank(billNumber)) {
+            checkedInItem.setBillName(getBillNumber(olePatronDocument, oleItemSearch.getItemBarCode(), billNumber));
+        }
         checkedInItem.setItemType(oleItemSearch.getItemType());
         checkedInItem.setItemForCircRecord(oleItemRecordForCirc);
 
@@ -663,6 +686,22 @@ public abstract class CheckinBaseController extends CircUtilController {
                     FeeType feeType = patronBillPaymentIterator.next();
                     if (null != feeType.getItemBarcode() && feeType.getItemBarcode().equalsIgnoreCase(itemBarcode)) {
                         return feeType.getOleFeeType().getFeeTypeCode();
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    private String getBillNumber(OlePatronDocument olePatronDocument, String itemBarcode, String billNumber) {
+        if (null != olePatronDocument) {
+            List<PatronBillPayment> patronBillPayments = olePatronDocument.getPatronBillPayments();
+            for (Iterator<PatronBillPayment> iterator = patronBillPayments.iterator(); iterator.hasNext(); ) {
+                PatronBillPayment patronBillPayment = iterator.next();
+                for (Iterator<FeeType> patronBillPaymentIterator = patronBillPayment.getFeeType().iterator(); patronBillPaymentIterator.hasNext(); ) {
+                    FeeType feeType = patronBillPaymentIterator.next();
+                    if (null != feeType.getBillNumber() && feeType.getBillNumber().equalsIgnoreCase(billNumber)) {
+                        return feeType.getFeeAmount()+"";
                     }
                 }
             }

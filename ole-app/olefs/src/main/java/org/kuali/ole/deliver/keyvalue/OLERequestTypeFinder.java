@@ -40,7 +40,7 @@ public class OLERequestTypeFinder extends KeyValuesBase {
             requestKeyLabels.add(new ConcreteKeyValue("", ""));
             for (OleDeliverRequestType requestType : oleDeliverRequestTypeCollection) {
                 if (requestType.isActive()) {
-                    requestKeyLabels.add(new ConcreteKeyValue(requestType.getRequestTypeCode(), requestType.getRequestTypeCode()));
+                    requestKeyLabels.add(new ConcreteKeyValue(requestType.getRequestTypeCode(), requestType.getRequestTypeName()));
                 }
             }
         }

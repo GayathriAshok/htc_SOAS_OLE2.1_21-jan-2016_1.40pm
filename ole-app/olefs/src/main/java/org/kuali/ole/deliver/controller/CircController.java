@@ -14,6 +14,7 @@ import org.kuali.ole.deliver.calendar.service.DateUtil;
 import org.kuali.ole.deliver.controller.checkout.CheckoutValidationController;
 import org.kuali.ole.deliver.controller.checkout.CircUtilController;
 import org.kuali.ole.deliver.controller.renew.RenewController;
+import org.kuali.ole.deliver.form.CheckinForm;
 import org.kuali.ole.deliver.form.CircForm;
 import org.kuali.ole.deliver.service.OleLoanDocumentPlatformAwareDao;
 import org.kuali.ole.deliver.service.ParameterValueResolver;
@@ -26,6 +27,7 @@ import org.kuali.ole.utility.OleStopWatch;
 import org.kuali.rice.core.api.config.property.ConfigContext;
 import org.kuali.rice.core.api.datetime.DateTimeService;
 import org.kuali.rice.krad.service.BusinessObjectService;
+import org.kuali.rice.krad.util.GlobalVariables;
 import org.kuali.rice.krad.web.form.UifFormBase;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
@@ -247,6 +249,28 @@ public class CircController extends CheckoutValidationController {
         List<OleLoanDocument> selectedLoanDocumentList = getSelectedLoanDocumentList(circForm);
         deleteClaimsReturnForItem(circForm, selectedLoanDocumentList);
         return getUIFModelAndView(form);
+    }
+
+    @RequestMapping(params = "methodToCall=openCheckInDialog")
+    public ModelAndView openCheckInDialog(@ModelAttribute("KualiForm") UifFormBase form, BindingResult result,
+                                           HttpServletRequest request, HttpServletResponse response) throws Exception {
+        CircForm circForm = (CircForm) form;
+        String url = ConfigContext.getCurrentContextConfig().getProperty("ole.fs.url.base") + "/ole-kr-krad/checkincontroller?viewId=checkinView&methodToCall=returnInLoan";
+        showIFrameDialog(url, circForm, "if (jq.trim(jq('#barcodeFieldSection_control').val()) === '') {\n" +
+                "        jq('#barcodeFieldSection_control').focus();\n" +
+                "    } else {\n" +
+                "\tjq('#checkoutItem_control').focus();\n" +
+                "}");
+        return getUIFModelAndView(form);
+    }
+
+    @RequestMapping(params = "methodToCall=loanInReturn")
+    public ModelAndView loanInReturn(@ModelAttribute("KualiForm") UifFormBase form, BindingResult result,
+                                           HttpServletRequest request, HttpServletResponse response) throws Exception {
+        CircForm circForm = (CircForm) form;
+        circForm.setCheckin(true);
+        start(circForm,result,request,response);
+        return getUIFModelAndView(circForm);
     }
 
     @RequestMapping(params = "methodToCall=openAlterDueDateDialog")

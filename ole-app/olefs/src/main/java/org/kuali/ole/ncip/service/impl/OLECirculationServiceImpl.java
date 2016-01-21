@@ -348,6 +348,7 @@ public class OLECirculationServiceImpl implements OLECirculationService {
             if (oleDeliverRequestBoList != null && oleDeliverRequestBoList.size() > 0) {
                 OleDeliverRequestBo oleDeliverRequestBo = oleDeliverRequestBoList.get(0);
                 oleDeliverRequestBo.setOperatorCreateId(operator);
+                oleDeliverRequestBo.setOperatorCreateName(operator);
                 oleDeliverRequestDocumentHelperService.cancelDocument(oleDeliverRequestBo);
                 oleCancelRequest.setCode("007");
                 oleCancelRequest.setMessage(ConfigContext.getCurrentContextConfig().getProperty(OLEConstants.REQUEST_SUCCESSFULLEY_CANCELLED));

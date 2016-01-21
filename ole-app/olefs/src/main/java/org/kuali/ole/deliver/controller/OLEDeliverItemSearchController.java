@@ -94,7 +94,7 @@ public class OLEDeliverItemSearchController extends UifControllerBase {
                     searchParams.getSearchConditions().add(searchParams.buildSearchCondition(OLEConstants.AND_SEARCH_SCOPE, searchParams.buildSearchField(DocType.ITEM.getCode(), Bib.PUBLISHER, publisher), OLEConstants.AND_SEARCH_SCOPE));
                 }
                 if (StringUtils.isNotBlank(itemBarcode)) {
-                    searchParams.getSearchConditions().add(searchParams.buildSearchCondition(OLEConstants.AND_SEARCH_SCOPE, searchParams.buildSearchField(DocType.ITEM.getCode(), Item.ITEM_BARCODE, itemBarcode), OLEConstants.AND_SEARCH_SCOPE));
+                    searchParams.getSearchConditions().add(searchParams.buildSearchCondition(OLEConstants.PHRASE, searchParams.buildSearchField(DocType.ITEM.getCode(), Item.ITEM_BARCODE, itemBarcode), OLEConstants.AND_SEARCH_SCOPE));
                 }
                 if (StringUtils.isNotBlank(callNumber)) {
                     searchParams.getSearchConditions().add(searchParams.buildSearchCondition(OLEConstants.AND_SEARCH_SCOPE, searchParams.buildSearchField(DocType.ITEM.getCode(), Item.CALL_NUMBER, callNumber),OLEConstants.OR_SEARCH_SCOPE));

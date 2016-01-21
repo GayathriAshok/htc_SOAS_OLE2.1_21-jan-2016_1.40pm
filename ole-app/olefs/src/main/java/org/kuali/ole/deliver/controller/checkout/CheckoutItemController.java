@@ -60,7 +60,7 @@ public class CheckoutItemController extends CircFastAddItemController {
                 showDialog("overrideMessageDialog", circForm, request, response);
             }else if (null != droolsResponse.retriveErrorCode() && droolsResponse.retriveErrorCode().equals(DroolsConstants.REQUEST_EXITS_FOR_LOANED_ITEM)) {
                 circForm.setErrorMessage(droolsResponse.getErrorMessage());
-                showDialog("checkoutRenewOptionDialog", circForm, request, response);
+                showDialog("generalInfoDialog", circForm, request, response);
             }else if (null != droolsResponse.retriveErrorCode() && droolsResponse.retriveErrorCode().equals(DroolsConstants.CHECKED_OUT_BY_SAME_PATRON)) {
                 circForm.setErrorMessage(droolsResponse.getErrorMessage());
                 showDialog("checkoutRenewOptionDialog", circForm, request, response);
@@ -118,7 +118,7 @@ public class CheckoutItemController extends CircFastAddItemController {
                 showDialog("overrideMessageDialog", circForm, request, response);
             }else if (null != droolsResponse.retriveErrorCode() && droolsResponse.retriveErrorCode().equals(DroolsConstants.REQUEST_EXITS_FOR_LOANED_ITEM)) {
                 circForm.setErrorMessage(droolsResponse.getErrorMessage());
-                showDialog("checkoutRenewOptionDialog", circForm, request, response);
+                showDialog("generalInfoDialog", circForm, request, response);
             }else if (null != droolsResponse.retriveErrorCode() && droolsResponse.retriveErrorCode().equals(DroolsConstants.CHECKED_OUT_BY_SAME_PATRON)) {
                 circForm.setErrorMessage(droolsResponse.getErrorMessage());
                 showDialog("checkoutRenewOptionDialog", circForm, request, response);
@@ -168,7 +168,7 @@ public class CheckoutItemController extends CircFastAddItemController {
                 showDialog("overrideMessageDialog", circForm, request, response);
             }else if (null != droolsResponse.retriveErrorCode() && droolsResponse.retriveErrorCode().equals(DroolsConstants.REQUEST_EXITS_FOR_LOANED_ITEM)) {
                 circForm.setErrorMessage(droolsResponse.getErrorMessage());
-                showDialog("checkoutRenewOptionDialog", circForm, request, response);
+                showDialog("generalInfoDialog", circForm, request, response);
             }else if (null != droolsResponse.retriveErrorCode() && droolsResponse.retriveErrorCode().equals(DroolsConstants.CHECKED_OUT_BY_SAME_PATRON)) {
                 circForm.setErrorMessage(droolsResponse.getErrorMessage());
                 showDialog("checkoutRenewOptionDialog", circForm, request, response);
@@ -216,7 +216,7 @@ public class CheckoutItemController extends CircFastAddItemController {
                 showDialog("overrideMessageDialog", circForm, request, response);
             }else if (null != droolsResponse.retriveErrorCode() && droolsResponse.retriveErrorCode().equals(DroolsConstants.REQUEST_EXITS_FOR_LOANED_ITEM)) {
                 circForm.setErrorMessage(droolsResponse.getErrorMessage());
-                showDialog("checkoutRenewOptionDialog", circForm, request, response);
+                showDialog("generalInfoDialog", circForm, request, response);
             }else if (null != droolsResponse.retriveErrorCode() && droolsResponse.retriveErrorCode().equals(DroolsConstants.CHECKED_OUT_BY_SAME_PATRON)) {
                 circForm.setErrorMessage(droolsResponse.getErrorMessage());
                 showDialog("checkoutRenewOptionDialog", circForm, request, response);
